@@ -101,6 +101,8 @@ refusals and for `my-usage`).
 | --- | --- | --- | --- |
 | Before round 1 | `6d0d4ca` | `node -e "..."` (JSON.parse all fixtures) | 30 passed, 0 failed (pre-R0 fixes) |
 | Before round 1 | `6d0d4ca` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip (container.authenticated-write-failed — kit journeys not updated), 0 fail |
+| Before round 2 | `85cdd54` | `node -e "..."` (JSON.parse all fixtures) | 32 passed, 0 failed |
+| Before round 2 | `85cdd54` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip, 0 fail |
 
 **Undo proofs:** not applicable — this package writes documents only; no code is added
 or changed.
