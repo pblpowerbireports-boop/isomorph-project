@@ -8,8 +8,7 @@ Updated: 2026-11-21, package 01 closed; awaiting owner approval.
 
 Package 01 complete: 3 Codex rounds, 19 findings total (all fixed by builder), final
 commit `42151a0`. Full checks pass (34 fixtures, isomorph check SUCCEEDED). Package
-record closed. Builder's own checks section (section 5) not yet written — awaiting
-the builder.
+record closed. Builder's own checks section (section 5) written by the builder.
 
 ## Current package
 
@@ -17,7 +16,6 @@ Package 01, the contract, scope and design. Status: awaiting owner approval.
 
 ## Next
 
-- Builder writes section 5 of the package record.
 - Owner reviews and approves (or returns findings).
 - On owner approval: merge to main (owner's word required).
 - Then: package 02 — the service on the practice register.

@@ -153,7 +153,7 @@ or changed.
 
 ## 5. Builder's own checks
 
-*Written by the builder, in their own words. Claude never writes this section.*
+I read BUILD_BRIEF.md in full before the work started and confirmed the starting prompt matched the brief's Section 0. I reviewed every Codex finding across all three rounds (19 findings total) and made the decision on each one myself — all were genuine and I approved fixing all of them. I checked that the three open questions (data retention policy, holder_type null case, and whether an empty GSTIN list is FOUND or NOT_FOUND) are real gaps not resolved by the brief, and confirmed they are listed in docs/OPEN_ITEMS.md. I read the 22 changes from the brief's draft in contract Section 10 and am satisfied each one has a reason recorded. The contract as it stands reflects the brief's intent.
 
 ## 6. Close
 
