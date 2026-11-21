@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["review_state", "packet_sha256", "findings", "residual_uncertainty"],
+  "properties": {
+    "review_state": {
+      "type": "string",
+      "enum": [
+        "ACCEPTED",
+        "CORRECTION_REQUIRED",
+        "MODEL_ESCALATION_REQUIRED",
+        "HUMAN_DECISION_REQUIRED"
+      ]
+    },
+    "packet_sha256": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "affected_path_or_component",
+          "violated_invariant",
+          "trigger",
+          "consequence",
+          "recommended_correction"
+        ],
+        "properties": {
+          "severity": { "type": "string", "enum": ["blocking", "material", "advisory"] },
+          "affected_path_or_component": { "type": "string" },
+          "violated_invariant": { "type": "string" },
+          "trigger": { "type": "string" },
+          "consequence": { "type": "string" },
+          "recommended_correction": { "type": "string" }
+        }
+      }
+    },
+    "residual_uncertainty": { "type": "string" }
+  }
+}

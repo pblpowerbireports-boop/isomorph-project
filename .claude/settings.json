@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.isomorph/local/secrets.env)",
+      "Edit(./.isomorph/local/secrets.env)",
+      "Read(./.isomorph/local/hooks.json)",
+      "Edit(./.isomorph/local/hooks.json)",
+      "Read(./.env)",
+      "Edit(./.env)",
+      "Read(~/.config/isomorph/**)",
+      "Edit(~/.config/isomorph/**)",
+      "Read(~/.codex/auth.json)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)"
+    ],
+    "ask": [
+      "Bash(isomorph promote *)",
+      "Bash(npx -y @isomorph.ai/cli@* promote *)",
+      "Bash(isomorph external-access *)",
+      "Bash(npx -y @isomorph.ai/cli@* external-access *)",
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr merge *)"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "schema": "isomorph.kit-lock/1.0",
+  "appId": "",
+  "tenantId": "pbl",
+  "bundle": {
+    "schema": "isomorph.kit-bundle/1.0",
+    "kitVersion": "0.76.45",
+    "sdk": {
+      "package": "@isomorph.ai/app-sdk",
+      "version": "2.15.27"
+    },
+    "images": {
+      "postgres": "postgres:16-alpine",
+      "minio": "quay.io/minio/minio@sha256:d249d1fb6966de4d8ad26c04754b545205ff15a62e4fd19ebd0f26fa5baacbc0",
+      "appGateway": "public.ecr.aws/y6t4p3i8/harbour-app-gateway@sha256:3e4098cfbbf8689f1b15be05810eefd62ff11620ff421ea9eb43e43c9c1d6634",
+      "sessionFixture": "public.ecr.aws/y6t4p3i8/harbour-session-fixture@sha256:6349476b3bfc38e843b05e0bd32a26a55268d3dfc8743f713ede9f265469f39f"
+    },
+    "nativeRuntime": {
+      "darwinArm64": {
+        "url": "https://public.ecr.aws/v2/y6t4p3i8/harbour-kit-bundle/blobs/sha256:e2170b4e4c259d1d89399a46d71a0f6fa640e2e4a84f302b15c98f1dfca3428a",
+        "sha256": "e2170b4e4c259d1d89399a46d71a0f6fa640e2e4a84f302b15c98f1dfca3428a"
+      },
+      "linuxArm64": {
+        "url": "https://public.ecr.aws/v2/y6t4p3i8/harbour-kit-bundle/blobs/sha256:b7ffae8c08bad933a53f47672d5b6529175b6bd6382b4a89ce526a75a64761ca",
+        "sha256": "b7ffae8c08bad933a53f47672d5b6529175b6bd6382b4a89ce526a75a64761ca"
+      },
+      "linuxX64": {
+        "url": "https://public.ecr.aws/v2/y6t4p3i8/harbour-kit-bundle/blobs/sha256:f3f271998a3386c12580a2aac52a23ec5185690c91b4b66c14eb4ac4b6193bc7",
+        "sha256": "f3f271998a3386c12580a2aac52a23ec5185690c91b4b66c14eb4ac4b6193bc7"
+      },
+      "windowsX64": {
+        "url": "https://public.ecr.aws/v2/y6t4p3i8/harbour-kit-bundle/blobs/sha256:52938c827910f0a060bfa32678b861c37b965aa95dde93f3a871f670677b09ca",
+        "sha256": "52938c827910f0a060bfa32678b861c37b965aa95dde93f3a871f670677b09ca"
+      }
+    },
+    "brief": {
+      "fingerprint": "unknown"
+    },
+    "declarationSchema": "isomorph.app-integrations/2.0"
+  },
+  "createdAt": "2026-11-21T06:50:13.022Z",
+  "updatedAt": "2026-11-21T06:50:13.023Z"
+}
