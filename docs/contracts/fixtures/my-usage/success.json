@@ -1,0 +1,17 @@
+{
+  "_about": "my-usage: today's paid and practice check counts with limits.",
+  "request": {},
+  "response": {
+    "contract_version": "1.0",
+    "caller": "service:crm-server",
+    "date": "2026-11-20",
+    "surepass": {
+      "checked_today": 5,
+      "daily_limit": 100
+    },
+    "practice": {
+      "checked_today": 12,
+      "daily_limit": null
+    }
+  }
+}

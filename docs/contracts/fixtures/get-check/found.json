@@ -1,0 +1,26 @@
+{
+  "_about": "get-check: found by check_id. Returns the stored check record unchanged.",
+  "request": {
+    "check_id": "00000000-0000-0000-0000-000000000001"
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000001",
+    "request_id": "crm-pan-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "AAACP7361R",
+    "register": "PRACTICE",
+    "outcome": "FOUND",
+    "reason": null,
+    "answer": {
+      "registered_name": "PRACTICE CRANES PRIVATE LIMITED",
+      "holder_type": "COMPANY"
+    },
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:00Z",
+    "reused": false,
+    "charged": false
+  }
+}

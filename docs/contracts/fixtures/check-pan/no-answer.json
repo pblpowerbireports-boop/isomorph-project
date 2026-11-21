@@ -1,0 +1,26 @@
+{
+  "_about": "check-pan: NO_ANSWER outcome. ZZZZT9001Z is a practice-register number that simulates unavailability.",
+  "request": {
+    "request_id": "crm-pan-003",
+    "pan": "ZZZZT9001Z",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000003",
+    "request_id": "crm-pan-003",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "ZZZZT9001Z",
+    "register": "PRACTICE",
+    "outcome": "NO_ANSWER",
+    "reason": "The practice register did not answer. Check again later.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:03Z",
+    "reused": false,
+    "charged": false
+  }
+}

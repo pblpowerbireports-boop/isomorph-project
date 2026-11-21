@@ -1,0 +1,26 @@
+{
+  "_about": "check-pan: NOT_FOUND outcome on the practice register. ZZZZA2099Z is not in the practice register.",
+  "request": {
+    "request_id": "crm-pan-002",
+    "pan": "ZZZZA2099Z",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000002",
+    "request_id": "crm-pan-002",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "ZZZZA2099Z",
+    "register": "PRACTICE",
+    "outcome": "NOT_FOUND",
+    "reason": "The practice register has no record of this number.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:02Z",
+    "reused": false,
+    "charged": false
+  }
+}

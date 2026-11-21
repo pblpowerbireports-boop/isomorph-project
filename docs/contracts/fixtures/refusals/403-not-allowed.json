@@ -1,0 +1,6 @@
+{
+  "_about": "403: credential is valid but the action is not in its allowed list. Refused by Isomorph before the action runs.",
+  "request_note": "Valid Authorization header, but credential is allowed check-pan only; this request targets check-gstin.",
+  "http_status": 403,
+  "response_note": "Response shape is Isomorph's own and may differ from the action's error shape."
+}

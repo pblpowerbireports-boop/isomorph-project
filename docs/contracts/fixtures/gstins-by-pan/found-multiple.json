@@ -1,0 +1,50 @@
+{
+  "_about": "gstins-by-pan: FOUND outcome, multiple GSTINs. AAACP7361R has 3 GSTINs in the practice register (2 active, 1 cancelled).",
+  "request": {
+    "request_id": "crm-gsbp-001",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000021",
+    "request_id": "crm-gsbp-001",
+    "replayed": false,
+    "kind": "GSTINS_BY_PAN",
+    "number": "AAACP7361R",
+    "register": "PRACTICE",
+    "outcome": "FOUND",
+    "reason": null,
+    "answer": {
+      "gstins": [
+        {
+          "gstin": "24AAACP7361R1ZW",
+          "state_code": "24",
+          "state_name": "Gujarat",
+          "registration_status": "Active",
+          "is_active": true
+        },
+        {
+          "gstin": "27AAACP7361R1ZQ",
+          "state_code": "27",
+          "state_name": "Maharashtra",
+          "registration_status": "Active",
+          "is_active": true
+        },
+        {
+          "gstin": "27AAACP7361R2ZP",
+          "state_code": "27",
+          "state_name": "Maharashtra",
+          "registration_status": "Cancelled",
+          "is_active": false
+        }
+      ]
+    },
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:21Z",
+    "reused": false,
+    "charged": false
+  }
+}

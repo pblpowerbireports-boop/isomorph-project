@@ -1,0 +1,26 @@
+{
+  "_about": "check-pan: REFUSED_INPUT outcome. ZZZZT9003Z is a practice-register number that simulates a provider-side refusal.",
+  "request": {
+    "request_id": "crm-pan-006",
+    "pan": "ZZZZT9003Z",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000006",
+    "request_id": "crm-pan-006",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "ZZZZT9003Z",
+    "register": "PRACTICE",
+    "outcome": "REFUSED_INPUT",
+    "reason": "The practice register refused the request. Please tell support.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:06Z",
+    "reused": false,
+    "charged": false
+  }
+}

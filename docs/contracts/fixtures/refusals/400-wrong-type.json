@@ -1,0 +1,14 @@
+{
+  "_about": "400: accept_kept_answer_days is a string instead of an integer. Nothing is logged or charged.",
+  "request": {
+    "request_id": "crm-bad-004a",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": "seven"
+  },
+  "http_status": 400,
+  "response": {
+    "error": "bad_request",
+    "message": "accept_kept_answer_days must be an integer between 0 and 366."
+  }
+}

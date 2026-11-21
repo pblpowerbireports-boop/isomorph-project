@@ -1,0 +1,20 @@
+{
+  "_about": "409: same request_id reused with a different PAN. Nothing new is logged or charged.",
+  "first_request": {
+    "request_id": "crm-dup-001",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "second_request": {
+    "request_id": "crm-dup-001",
+    "pan": "AABCP2468M",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "http_status": 409,
+  "response": {
+    "error": "conflict",
+    "message": "The request_id 'crm-dup-001' was already used with a different request."
+  }
+}

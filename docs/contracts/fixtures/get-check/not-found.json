@@ -1,0 +1,11 @@
+{
+  "_about": "get-check: 404 when no check with that id exists for this caller.",
+  "request": {
+    "check_id": "00000000-0000-0000-0000-999999999999"
+  },
+  "http_status": 404,
+  "response": {
+    "error": "not_found",
+    "message": "No check with that id for this caller."
+  }
+}

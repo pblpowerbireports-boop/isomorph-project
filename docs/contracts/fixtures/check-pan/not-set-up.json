@@ -1,0 +1,26 @@
+{
+  "_about": "check-pan: NOT_SET_UP outcome. ZZZZT9002Z is a practice-register number that simulates a config error.",
+  "request": {
+    "request_id": "crm-pan-004",
+    "pan": "ZZZZT9002Z",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000004",
+    "request_id": "crm-pan-004",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "ZZZZT9002Z",
+    "register": "PRACTICE",
+    "outcome": "NOT_SET_UP",
+    "reason": "Identity checks with the practice register are not set up for this caller.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:04Z",
+    "reused": false,
+    "charged": false
+  }
+}

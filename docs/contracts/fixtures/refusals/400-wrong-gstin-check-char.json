@@ -1,0 +1,14 @@
+{
+  "_about": "400: GSTIN check character does not fit. Nothing is logged or charged.",
+  "request": {
+    "request_id": "crm-bad-002a",
+    "gstin": "24AAACP7361R1ZX",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "http_status": 400,
+  "response": {
+    "error": "bad_request",
+    "message": "GSTIN check character is wrong: expected W for 24AAACP7361R1Z."
+  }
+}

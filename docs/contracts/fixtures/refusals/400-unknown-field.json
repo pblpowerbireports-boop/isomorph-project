@@ -1,0 +1,15 @@
+{
+  "_about": "400: unknown field in request body. Nothing is logged or charged.",
+  "request": {
+    "request_id": "crm-bad-003a",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": 0,
+    "extra_field": "unexpected"
+  },
+  "http_status": 400,
+  "response": {
+    "error": "bad_request",
+    "message": "Unknown field: extra_field."
+  }
+}

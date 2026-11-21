@@ -1,0 +1,14 @@
+{
+  "_about": "400: malformed PAN (too short, wrong format). Nothing is logged or charged.",
+  "request": {
+    "request_id": "crm-bad-001a",
+    "pan": "BADPAN",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "http_status": 400,
+  "response": {
+    "error": "bad_request",
+    "message": "PAN format is wrong: must be 10 characters — 5 uppercase letters, 4 digits, 1 uppercase letter."
+  }
+}

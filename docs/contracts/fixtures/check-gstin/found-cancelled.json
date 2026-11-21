@@ -1,0 +1,36 @@
+{
+  "_about": "check-gstin: FOUND outcome, cancelled registration. 27AAACP7361R2ZP is from the practice register.",
+  "request": {
+    "request_id": "crm-gstin-002",
+    "gstin": "27AAACP7361R2ZP",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000012",
+    "request_id": "crm-gstin-002",
+    "replayed": false,
+    "kind": "GSTIN",
+    "number": "27AAACP7361R2ZP",
+    "register": "PRACTICE",
+    "outcome": "FOUND",
+    "reason": null,
+    "answer": {
+      "legal_name": "PRACTICE CRANES PRIVATE LIMITED",
+      "trade_name": "PRACTICE CRANES MUMBAI",
+      "registration_status": "Cancelled",
+      "is_active": false,
+      "registered_address": "Office 9, Practice Towers, Mumbai, Maharashtra, 400051",
+      "constitution_of_business": "Private Limited Company",
+      "taxpayer_type": "Regular",
+      "registered_on": "2017-07-01",
+      "cancelled_on": "2023-03-31"
+    },
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:12Z",
+    "reused": false,
+    "charged": false
+  }
+}

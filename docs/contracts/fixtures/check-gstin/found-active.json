@@ -1,0 +1,36 @@
+{
+  "_about": "check-gstin: FOUND outcome, active registration. 24AAACP7361R1ZW is from the practice register.",
+  "request": {
+    "request_id": "crm-gstin-001",
+    "gstin": "24AAACP7361R1ZW",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000011",
+    "request_id": "crm-gstin-001",
+    "replayed": false,
+    "kind": "GSTIN",
+    "number": "24AAACP7361R1ZW",
+    "register": "PRACTICE",
+    "outcome": "FOUND",
+    "reason": null,
+    "answer": {
+      "legal_name": "PRACTICE CRANES PRIVATE LIMITED",
+      "trade_name": "PRACTICE CRANES",
+      "registration_status": "Active",
+      "is_active": true,
+      "registered_address": "Plot 12, Practice Industrial Estate, Vadodara, Gujarat, 390010",
+      "constitution_of_business": "Private Limited Company",
+      "taxpayer_type": "Regular",
+      "registered_on": "2017-07-01",
+      "cancelled_on": null
+    },
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:11Z",
+    "reused": false,
+    "charged": false
+  }
+}

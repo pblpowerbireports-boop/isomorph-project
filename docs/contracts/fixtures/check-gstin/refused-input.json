@@ -1,0 +1,26 @@
+{
+  "_about": "check-gstin: REFUSED_INPUT outcome. 37ZZZZT9003Z1ZA is a practice-register GSTIN that simulates a provider-side refusal.",
+  "request": {
+    "request_id": "crm-gstin-007",
+    "gstin": "37ZZZZT9003Z1ZA",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000017",
+    "request_id": "crm-gstin-007",
+    "replayed": false,
+    "kind": "GSTIN",
+    "number": "37ZZZZT9003Z1ZA",
+    "register": "PRACTICE",
+    "outcome": "REFUSED_INPUT",
+    "reason": "The practice register refused the request. Please tell support.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:17Z",
+    "reused": false,
+    "charged": false
+  }
+}

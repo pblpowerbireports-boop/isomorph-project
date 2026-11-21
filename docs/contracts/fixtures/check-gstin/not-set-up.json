@@ -1,0 +1,26 @@
+{
+  "_about": "check-gstin: NOT_SET_UP outcome. 37ZZZZT9002Z1ZB is a practice-register GSTIN that simulates a config error.",
+  "request": {
+    "request_id": "crm-gstin-005",
+    "gstin": "37ZZZZT9002Z1ZB",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000015",
+    "request_id": "crm-gstin-005",
+    "replayed": false,
+    "kind": "GSTIN",
+    "number": "37ZZZZT9002Z1ZB",
+    "register": "PRACTICE",
+    "outcome": "NOT_SET_UP",
+    "reason": "Identity checks with the practice register are not set up for this caller.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:15Z",
+    "reused": false,
+    "charged": false
+  }
+}

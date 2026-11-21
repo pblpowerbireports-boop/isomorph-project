@@ -1,0 +1,26 @@
+{
+  "_about": "gstins-by-pan: LIMIT_REACHED outcome. The caller's daily practice-register limit is used up.",
+  "request": {
+    "request_id": "crm-gsbp-006",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000026",
+    "request_id": "crm-gsbp-006",
+    "replayed": false,
+    "kind": "GSTINS_BY_PAN",
+    "number": "AAACP7361R",
+    "register": "PRACTICE",
+    "outcome": "LIMIT_REACHED",
+    "reason": "Today's limit of practice checks is used up. Check again tomorrow.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:26Z",
+    "reused": false,
+    "charged": false
+  }
+}

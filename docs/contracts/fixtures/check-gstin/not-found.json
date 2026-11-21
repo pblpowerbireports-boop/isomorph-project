@@ -1,0 +1,27 @@
+{
+  "_about": "check-gstin: NOT_FOUND outcome. 37ZZZZA2099Z1ZJ is an invented GSTIN not in the practice register.",
+  "_check_char_note": "37ZZZZA2099Z1Z: check char J computed with the GST algorithm.",
+  "request": {
+    "request_id": "crm-gstin-003",
+    "gstin": "37ZZZZA2099Z1ZJ",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000013",
+    "request_id": "crm-gstin-003",
+    "replayed": false,
+    "kind": "GSTIN",
+    "number": "37ZZZZA2099Z1ZJ",
+    "register": "PRACTICE",
+    "outcome": "NOT_FOUND",
+    "reason": "The practice register has no record of this number.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:13Z",
+    "reused": false,
+    "charged": false
+  }
+}
