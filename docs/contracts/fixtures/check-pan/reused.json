@@ -1,0 +1,29 @@
+{
+  "_about": "check-pan: accept_kept_answer_days > 0 and a FOUND answer for this number exists within that window. The earlier answer is returned with reused: true; nothing new is paid.",
+  "request": {
+    "request_id": "crm-pan-reuse-001",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": 7
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000031",
+    "request_id": "crm-pan-reuse-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "AAACP7361R",
+    "register": "PRACTICE",
+    "outcome": "FOUND",
+    "reason": null,
+    "answer": {
+      "registered_name": "PRACTICE CRANES PRIVATE LIMITED",
+      "holder_type": "COMPANY"
+    },
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:00Z",
+    "reused": true,
+    "charged": false
+  }
+}

@@ -44,8 +44,9 @@ Request: one field, `check_id` (a UUID) or `request_id` (the caller's key). Not 
 { "check_id": "00000000-0000-0000-0000-000000000001" }
 ```
 
-Response (200): the check record, in the same shape as section 4. `replayed` is always
-`false` in a `get-check` response (the original value from when the check was recorded).
+Response (200): the check record, in the same shape as section 4. `replayed` reflects
+whether the original check was itself a replay, as recorded — it is not reset to `false`
+by the lookup.
 
 Response (404): error body (section 6, error response body).
 
@@ -392,6 +393,10 @@ check-character algorithm, as implemented in `accounts/identity_checks.py`):
 - `37ZZZZT9001Z1ZC`: state 37, PAN `ZZZZT9001Z`, entity 1, check `C`
 - `37ZZZZT9002Z1ZB`: state 37, PAN `ZZZZT9002Z`, entity 1, check `B`
 - `37ZZZZT9003Z1ZA`: state 37, PAN `ZZZZT9003Z`, entity 1, check `A`
+
+`ZZZZA2050Z` has only a `gstins-by-pan` entry in the practice register. For `check-pan`
+and `check-gstin`, this PAN returns `NOT_FOUND` (the general rule: any number without a
+matching entry for that action returns `NOT_FOUND`).
 
 The cancelled GSTIN (`27AAACP7361R2ZP`) from the CRM's practice register is kept and
 serves the "cancelled GSTIN" fixture. The PAN `AAACP7361R` with its three GSTINs (two

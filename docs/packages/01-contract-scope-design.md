@@ -99,26 +99,29 @@ refusals and for `my-usage`).
 
 | When | Commit | Command | Exact result |
 | --- | --- | --- | --- |
+| Before round 1 | `6d0d4ca` | `node -e "..."` (JSON.parse all fixtures) | 30 passed, 0 failed (pre-R0 fixes) |
+| Before round 1 | `6d0d4ca` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip (container.authenticated-write-failed — kit journeys not updated), 0 fail |
 
 **Undo proofs:** not applicable — this package writes documents only; no code is added
 or changed.
 
 **Not run, and why:**
 - `npm run build`, `npm test`: no code changed in this package.
-- Click-through: no screen changed.
-- Full `isomorph check` and fixture JSON validation will be run before the first Codex
-  round; counts will be recorded here.
+- Click-through: no screen changed (kit screen is unchanged).
 
 ## 4. Reviews
 
 | Round | Commit reviewed | Packet SHA-256 (first 12) | State | Blocking / material / advisory | Owner's permission (rounds after 3) |
 | --- | --- | --- | --- | --- | --- |
-| 0 (self-review) | | | | | |
+| 0 (self-review) | `6d0d4ca` | n/a | CORRECTION_REQUIRED | 1 material, 2 advisory | n/a |
 
 **Findings and decisions:**
 
 | # | Severity | What was found (one line) | Builder's decision | Why | Fixing commit | Test that now catches it |
 | --- | --- | --- | --- | --- | --- | --- |
+| R0.1 | Material | Contradictory prose in section 2a: "`replayed` is always false … (the original value from when the check was recorded)" | **Fix** — builder said "fix all three" | Clarified to: return the stored value; not reset to false by the lookup | see next commit | fixture `get-check/found.json` shows stored replayed value |
+| R0.2 | Advisory | No `replayed: true` or `reused: true` fixture; both are contract-visible fields tested by the assessor | **Fix** — builder said "fix all three" | Added `check-pan/replayed.json` and `check-pan/reused.json` | see next commit | n/a (documentary) |
+| R0.3 | Advisory | `ZZZZA2050Z` has only a gstins-by-pan practice entry; check-pan/check-gstin behaviour for it was unstated | **Fix** — builder said "fix all three" | Added clarifying note to contract section 8 | see next commit | n/a (documentary) |
 
 ## 5. Builder's own checks
 
