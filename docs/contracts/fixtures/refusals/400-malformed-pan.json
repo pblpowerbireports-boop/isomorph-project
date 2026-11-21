@@ -1,5 +1,5 @@
 {
-  "_about": "400: malformed PAN (too short, wrong format). Nothing is logged or charged.",
+  "_about": "400: malformed PAN (too short, wrong format). For external callers Isomorph's schema check rejects this before the action runs — nothing is logged. For builder calls (which bypass that check) the action's own validation catches it and logs a REFUSED_INPUT entry.",
   "request": {
     "request_id": "crm-bad-001a",
     "pan": "BADPAN",

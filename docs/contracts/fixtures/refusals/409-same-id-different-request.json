@@ -8,13 +8,13 @@
   },
   "second_request": {
     "request_id": "crm-dup-001",
-    "pan": "AABCP2468M",
+    "pan": "ZZZZT9001Z",
     "register": "practice",
     "accept_kept_answer_days": 0
   },
   "http_status": 409,
   "response": {
     "error": "conflict",
-    "message": "The request_id 'crm-dup-001' was already used with a different request."
+    "message": "The request_id was already used with a different request."
   }
 }

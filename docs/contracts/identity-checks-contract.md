@@ -298,9 +298,11 @@ the PAN asked is `NO_ANSWER`, never `FOUND`. SurePass must not cross numbers.
 
 **Same request again.** The same `request_id` with the same request (same kind, number,
 register and `accept_kept_answer_days`) returns the first answer with `replayed: true`,
-nothing new paid or written. To check again after `NO_ANSWER`, the caller sends a new
-`request_id`. Two identical requests at the same moment give one paid call and one
-replayed response.
+nothing new paid or written (no new check record, no new provider call, no new charge).
+The replay itself is recorded in the call log (section 7.3). To check again after
+`NO_ANSWER`, the caller sends a new `request_id`. Two identical requests at the same
+moment produce at most one provider call and one replayed response (see section 7.0 for
+the narrow crash exception).
 
 **Error response body.** Every refusal from an action (400, 403, 404, 409) returns JSON:
 
@@ -330,13 +332,22 @@ One settings record per credential (`service:<clientId>`):
 
 ### 7.0 Request-slot claim (concurrent safety)
 
-Before calling the provider or reading any kept answer, the service atomically claims
-a request slot by inserting a check row under the `(caller, request_id)` unique
-constraint. If that insert conflicts, the action reads the existing row: same request
-body → returns the existing answer with `replayed: true`; different request body →
-returns 409. This ensures the second of two identical concurrent requests never reaches
-the provider. The claim, the provider call, and the final row update all occur within
-one database transaction.
+Before calling the provider or reading any kept answer, the service claims a request
+slot in two steps:
+
+1. **Claim transaction.** Insert a placeholder check row under the `(caller, request_id)`
+   unique constraint and commit immediately. If that insert conflicts, the action reads
+   the existing row: same request body → returns the existing answer with `replayed: true`;
+   different request body → returns 409.
+2. **Result transaction.** After the provider call returns, update the placeholder with
+   the final outcome and commit.
+
+Outside the narrow crash window (a provider call that succeeds but whose result
+transaction then aborts), two identical concurrent requests produce at most one provider
+call. In that window, a provider call may occur without a durable record; this
+unavoidable uncertainty is acknowledged here rather than hidden. If SurePass offers no
+idempotency key, there is no way to recover the result automatically — the caller should
+send a new `request_id` to check again.
 
 ### 7.2 Daily limits
 
@@ -364,10 +375,24 @@ Every call that reaches an action is recorded:
 | `charged` | whether a paid SurePass call was made (never true for practice) |
 | `reused` | whether an earlier answer was returned |
 | `replayed` | whether the request_id was seen before |
-| `check_id` | UUID |
+| `check_id` | UUID of the original check record (same value for a replay) |
 | register reference | SurePass's reference, or null |
 | time taken | milliseconds |
 | `checked_at` | ISO 8601 UTC |
+
+**Replays are logged.** When a request is a replay, a new call-log entry is written with
+the original `check_id`, `replayed: true`, `register_reference: null`, and
+`charged: false`. No new check record is created; "nothing new written" in section 6
+refers to no new check record, no new provider call, and no new charge.
+
+**Two paths for input-validation refusals:**
+
+- Requests rejected by Isomorph's JSON Schema check (`expose.input`) before the action
+  runs are **not logged** by the action (the action is never reached). This applies to
+  external callers only.
+- Requests rejected by the action's own input validation (which runs for all callers,
+  including builders) **are logged** with `outcome: REFUSED_INPUT`, `charged: false`,
+  `reused: false`, `replayed: false`, and `answer: null`.
 
 No number, name or reply body appears in any log line visible outside the action.
 
@@ -467,6 +492,11 @@ Request body: `{ "id_number": "<number>" }` with `Authorization: Bearer <key>` a
 | 429, 5xx, timeout (20 seconds), network failure | `NO_ANSWER` |
 | Any other HTTP status, or a response body that is not valid JSON | `NO_ANSWER` |
 
+The rows are evaluated in the order shown. Status-code rows take precedence: the
+JSON/non-JSON distinction of the catch-all row applies only to statuses not covered by
+any earlier row. 3xx responses are not followed; they fall through to the catch-all as
+`NO_ANSWER`.
+
 **Guards (from the CRM's tested code):**
 
 - An answer whose own number field (`pan_number` for PAN, `gstin` for GSTIN) does not
@@ -542,3 +572,7 @@ Every change is listed here for the owner's approval.
 | 13 | Clarified: `charged` = paid SurePass call; practice daily counts use a separate invocation count (sections 4 and 7.2) | The brief's actions table says "Charged? When SurePass is called". Practice checks cost nothing but do count against a daily limit. Using `charged` for both would contradict every practice fixture. |
 | 14 | Added: `pan`/`gstin` explicitly forbidden in the wrong action (section 3) | Both fields are listed in the contract, so the "unknown field" rule would not catch them. Explicit rejection prevents ambiguous behaviour and cross-action identity of replays. |
 | 15 | Added: catch-all for unrecognised SurePass HTTP statuses (section 9) | The table was exhaustive for expected codes but left no rule for 3xx, 402, 405, 408, 409 etc. Any such response is NO_ANSWER. |
+| 16 | Softened concurrent-request guarantee in sections 6 and 7.0 to acknowledge the narrow crash window | In a crash scenario (provider call succeeds, result transaction aborts), a paid call may occur without a durable record. The original claim was unconditional; this correction is accurate and does not change the protocol's behaviour outside that window. |
+| 17 | Clarified replay logging in section 7.3: replays are recorded in the call log | "Nothing new written" means no new check record and no new charge; the replay itself is still logged. This matches the assessor requirement (brief section 6, check 14) and the section 7.3 table. |
+| 18 | Added two-path rule for input-validation refusals (section 7.3) | Isomorph's schema check rejects malformed external calls before the action runs (not logged); the action's own validation rejects all callers (logged with REFUSED_INPUT). Without this distinction, implementers might not log builder-call refusals. |
+| 19 | Added reply-table precedence note and 3xx rule (section 9) | Status-code rows take precedence over the JSON/non-JSON catch-all; 3xx is not followed. |

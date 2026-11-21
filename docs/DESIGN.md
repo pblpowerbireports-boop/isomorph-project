@@ -113,7 +113,8 @@ fixtures (`gstins-by-pan/found-empty.json`).
 
 **Decision:** `get-check` returns the check record in the same shape as a check action
 (section 4). `my-usage` returns `contract_version`, `caller`, `date`, and per-register
-objects with `checked_today` and `daily_limit`.
+objects with `invocations_today` (count of new register invocations, excluding replays,
+reuses and LIMIT_REACHED outcomes) and `daily_limit`.
 
 **Reason:** The brief defines these actions by what they do, not by their response shape.
 Section 2a was added to the contract to make the shapes explicit and testable. Without a

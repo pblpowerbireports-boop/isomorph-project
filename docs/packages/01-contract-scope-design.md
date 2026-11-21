@@ -117,23 +117,31 @@ or changed.
 | --- | --- | --- | --- | --- | --- |
 | 0 (self-review) | `6d0d4ca` | n/a | CORRECTION_REQUIRED | 1 material, 2 advisory | n/a |
 | 1 | `0330a68` | `a38e6cb7d581` | CORRECTION_REQUIRED | 0 blocking, 8 material, 1 advisory | n/a |
+| 2 | `4746db2` | `00f4c02d4534` | CORRECTION_REQUIRED | 0 blocking, 7 material, 0 advisory | n/a |
 
 **Findings and decisions:**
 
 | # | Severity | What was found (one line) | Builder's decision | Why | Fixing commit | Test that now catches it |
 | --- | --- | --- | --- | --- | --- | --- |
-| R0.1 | Material | Contradictory prose in section 2a: "`replayed` is always false … (the original value from when the check was recorded)" | **Fix** — builder said "fix all three" | Clarified to: return the stored value; not reset to false by the lookup | see next commit | fixture `get-check/found.json` shows stored replayed value |
+| R0.1 | Material | Contradictory prose in section 2a: "`replayed` is always false … (the original value from when the check was recorded)" | **Fix** — builder said "fix all three" | Clarified to: return the stored value; not reset to false by the lookup | see next commit | documentary fixture (JSON.parse confirms syntax only; no behavioral test) |
 | R0.2 | Advisory | No `replayed: true` or `reused: true` fixture; both are contract-visible fields tested by the assessor | **Fix** — builder said "fix all three" | Added `check-pan/replayed.json` and `check-pan/reused.json` | see next commit | n/a (documentary) |
 | R0.3 | Advisory | `ZZZZA2050Z` has only a gstins-by-pan practice entry; check-pan/check-gstin behaviour for it was unstated | **Fix** — builder said "fix all three" | Added clarifying note to contract section 8 | see next commit | n/a (documentary) |
 | R1.1 | Material | Concurrent identical requests: unique constraint catches second insert but not second provider call | **Fix** — builder said "fix all nine" | Added request-slot claim protocol to contract §7.0 and DESIGN.md D-06 | see next commit | n/a (documentary) |
 | R1.2 | Material | FOR UPDATE on non-existent daily_counts row locks nothing (first request of day) | **Fix** — builder said "fix all nine" | Added insert-on-conflict before FOR UPDATE to contract §7.2 and DESIGN.md D-05 | see next commit | n/a (documentary) |
 | R1.3 | Material | `charged` semantics conflict: "counted against daily limit" vs. practice fixtures all charged: false | **Fix** — builder said "fix all nine" | `charged` = paid SurePass call only; `invocations_today` in my-usage counts new calls to any register | see next commit | n/a (documentary) |
-| R1.4 | Material | 400-wrong-gstin-check-char message echoes submitted number | **Fix** — builder said "fix all nine" | Changed message to "GSTIN check character is wrong." | see next commit | fixture R1.4 |
-| R1.5 | Material | `checked_at` mismatch: get-check/found uses `10:15:00Z` but check-pan/found uses `10:15:01Z` for same check_id | **Fix** — builder said "fix all nine" | Aligned get-check/found.json to `10:15:01Z` | see next commit | fixture R1.5 |
+| R1.4 | Material | 400-wrong-gstin-check-char message echoes submitted number | **Fix** — builder said "fix all nine" | Changed message to "GSTIN check character is wrong." | see next commit | documentary fixture (JSON.parse confirms syntax only; no behavioral test) |
+| R1.5 | Material | `checked_at` mismatch: get-check/found uses `10:15:00Z` but check-pan/found uses `10:15:01Z` for same check_id | **Fix** — builder said "fix all nine" | Aligned get-check/found.json to `10:15:01Z` | see next commit | documentary fixture (JSON.parse confirms syntax only; no behavioral test) |
 | R1.6 | Material | SurePass reply table has no catch-all for unrecognised HTTP statuses | **Fix** — builder said "fix all nine" | Added catch-all row: any other status or non-JSON body → NO_ANSWER | see next commit | n/a (documentary) |
 | R1.7 | Material | `pan` and `gstin` not explicitly forbidden in the wrong action | **Fix** — builder said "fix all nine" | Added explicit prohibition to contract §3 | see next commit | n/a (documentary) |
 | R1.8 | Material | R0.3 note wrong for check-gstin (ZZZZA2050Z as GSTIN → 400, not NOT_FOUND) | **Fix** — builder said "fix all nine" | Corrected note in contract §8 | see next commit | n/a (documentary) |
 | R1.9 | Advisory | STATUS.md still said checks/self-review pending after R0 and R1 | **Fix** — builder said "fix all nine" | Updated STATUS.md to reflect current state | see next commit | n/a |
+| R2.1 | Material | Concurrent-request guarantee too strong: crash window (provider call succeeds, result transaction aborts) means claim can be lost | **Fix** — builder said "fix all seven" | §7.0 rewritten: two-transaction protocol described; crash window acknowledged | see next commit | n/a (documentary) |
+| R2.2 | Material | Replay log coherence: "nothing new written" and "every call recorded" cannot both hold for a single row; replay log entries, `register_reference` and `charged` semantics unspecified | **Fix** — builder said "fix all seven" | §7.3 clarified: replays are logged as separate entries with original `check_id`, `register_reference: null`, `charged: false`; added SurePass replay fixture | see next commit | n/a (documentary) |
+| R2.3 | Material | SurePass reply table ambiguous for non-JSON responses with specific status codes | **Fix** — builder said "fix all seven" | §9: added precedence note (status rows first; catch-all for unmatched statuses only) and 3xx rule | see next commit | n/a (documentary) |
+| R2.4 | Material | 409 fixture error message echoes submitted `request_id`; second-request PAN `AABCP2468M` not a documented practice number | **Fix** — builder said "fix all seven" | Message changed to "The request_id was already used with a different request."; second PAN changed to `ZZZZT9001Z` | see next commit | n/a (documentary) |
+| R2.5 | Material | DESIGN.md D-09 still uses `checked_today` after R1.3 renamed it to `invocations_today` | **Fix** — builder said "fix all seven" | D-09 updated to `invocations_today` with description | see next commit | n/a (documentary) |
+| R2.6 | Material | §7.3 "every call recorded" conflicts with refusal fixtures "nothing is logged"; two paths (Isomorph schema check vs. action validation) not distinguished | **Fix** — builder said "fix all seven" | §7.3 adds two-path rule; refusal fixture `_about` notes updated to explain which path each example shows | see next commit | n/a (documentary) |
+| R2.7 | Material | Package record overclaims: R0.1, R1.4, R1.5 "Test that now catches it" column lists fixtures as protecting tests; JSON.parse check only validates syntax | **Fix** — builder said "fix all seven" | Column updated to "documentary fixture (JSON.parse confirms syntax only; no behavioral test)" for R0.1, R1.4, R1.5 | see next commit | n/a |
 
 ## 5. Builder's own checks
 
