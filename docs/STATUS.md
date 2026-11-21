@@ -2,32 +2,33 @@
 
 Where the work stands and what comes next. Updated at every step of every package.
 
-Updated: 2026-11-21, package 01, R2 fixes applied; full checks and round 3 pending.
+Updated: 2026-11-21, package 01, R3 fixes applied; final checks and owner approval pending.
 
 ## Where it stands
 
-Package 01 building: Codex round 2 returned CORRECTION_REQUIRED (7 material, 0 advisory).
-All seven findings approved by the builder ("fix all seven"). Corrections applied;
-commit pending. Full checks will be run on the corrected commit before round 3.
+Package 01 building: Codex round 3 returned CORRECTION_REQUIRED (3 material, 0 advisory).
+All three findings approved by the builder ("fix all three"). Corrections applied;
+commit pending. Round 3 is the final permitted round without the owner's permission.
+Full checks will be run on the corrected commit; then the package record is closed and
+the owner's approval is sought.
 
 ## Current package
 
-Package 01, the contract, scope and design. Status: R2 corrections applied; full checks
-and round 3 pending.
+Package 01, the contract, scope and design. Status: R3 corrections applied; full checks
+and package close pending.
 
 ## Next
 
 - Run full checks on the corrected commit.
-- Build round 3 packet and run Codex.
-- Present findings; record decisions.
-- After round 3 (the final round unless the owner permits more): list open questions
-  and all contract changes from the brief; stop for owner's approval.
+- Close the package record (commit, exact check counts, remind builder of section 5).
+- List all open questions and all contract changes from the brief for the owner.
+- Stop for the owner's approval.
 
 ## Packages
 
 | # | Name | Status | Record |
 | --- | --- | --- | --- |
-| 01 | Contract, scope and design | building — R2 corrections applied; round 3 pending | `docs/packages/01-contract-scope-design.md` |
+| 01 | Contract, scope and design | building — R3 corrections applied; closing | `docs/packages/01-contract-scope-design.md` |
 
 ## Owner's decisions
 

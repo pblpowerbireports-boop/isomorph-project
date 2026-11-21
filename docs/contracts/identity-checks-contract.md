@@ -44,9 +44,12 @@ Request: one field, `check_id` (a UUID) or `request_id` (the caller's key). Not 
 { "check_id": "00000000-0000-0000-0000-000000000001" }
 ```
 
-Response (200): the check record, in the same shape as section 4. `replayed` reflects
-whether the original check was itself a replay, as recorded — it is not reset to `false`
-by the lookup.
+Response (200): the check record, in the same shape as section 4. Every completed check
+record is retrievable, whatever its outcome — `NO_ANSWER`, `NOT_SET_UP`, `LIMIT_REACHED`
+and `REFUSED_INPUT` checks are stored and can be looked up. `replayed` reflects whether
+the original check was itself a replay, as recorded — it is not reset to `false` by the
+lookup. An `IN_PROGRESS` placeholder (section 7.0) is not a completed check and is never
+returned.
 
 Response (404): error body (section 6, error response body).
 
@@ -189,7 +192,9 @@ register call is an outcome, not an HTTP error.
 ## 5. Answers by kind
 
 Only `FOUND` and `NOT_FOUND` are answers about the number. Every other outcome means "no
-answer yet" and is never kept or reused.
+answer yet" — it is **never eligible for kept-answer reuse** (`accept_kept_answer_days`
+and the 60-second rule do not apply to it) but its check record is stored and
+retrievable via `get-check`.
 
 ### 5.1 Outcomes
 
@@ -335,19 +340,28 @@ One settings record per credential (`service:<clientId>`):
 Before calling the provider or reading any kept answer, the service claims a request
 slot in two steps:
 
-1. **Claim transaction.** Insert a placeholder check row under the `(caller, request_id)`
-   unique constraint and commit immediately. If that insert conflicts, the action reads
-   the existing row: same request body → returns the existing answer with `replayed: true`;
-   different request body → returns 409.
-2. **Result transaction.** After the provider call returns, update the placeholder with
-   the final outcome and commit.
+1. **Claim transaction.** Insert a placeholder check row (internal state `IN_PROGRESS`,
+   not a contract outcome and never returned to callers) under the `(caller, request_id)`
+   unique constraint and commit immediately.
+   - If the insert **conflicts with a finalised row** (any terminal outcome): same request
+     body → returns the existing answer with `replayed: true`; different request body →
+     returns 409.
+   - If the insert **conflicts with an `IN_PROGRESS` row** (the first request is still
+     running): the conflicting request polls for up to 10 seconds for the row to reach a
+     terminal outcome, then replays the finalised result. If the row is still `IN_PROGRESS`
+     after 10 seconds it is treated as stale; the conflicting request overwrites the claim
+     and proceeds as the first request.
 
-Outside the narrow crash window (a provider call that succeeds but whose result
+2. **Result transaction.** After the provider call returns — or after any terminal path
+   that does not call the provider (reuse, `LIMIT_REACHED`, `NOT_SET_UP`) — the action
+   updates the placeholder with the final outcome and commits.
+
+`get-check` never returns an `IN_PROGRESS` row; a placeholder is not a completed check
+record. Outside the narrow crash window (a provider call that succeeds but whose result
 transaction then aborts), two identical concurrent requests produce at most one provider
 call. In that window, a provider call may occur without a durable record; this
-unavoidable uncertainty is acknowledged here rather than hidden. If SurePass offers no
-idempotency key, there is no way to recover the result automatically — the caller should
-send a new `request_id` to check again.
+unavoidable uncertainty is acknowledged here. If SurePass offers no idempotency key,
+the caller should send a new `request_id` to check again.
 
 ### 7.2 Daily limits
 
@@ -391,8 +405,11 @@ refers to no new check record, no new provider call, and no new charge.
   runs are **not logged** by the action (the action is never reached). This applies to
   external callers only.
 - Requests rejected by the action's own input validation (which runs for all callers,
-  including builders) **are logged** with `outcome: REFUSED_INPUT`, `charged: false`,
-  `reused: false`, `replayed: false`, and `answer: null`.
+  including builders) **are logged** as an action-refusal entry with `outcome: null`
+  (no register was reached), `charged: false`, `reused: false`, `replayed: false`, and
+  nullable request fields (`request_id`, `number`, and `register` as received, or `null`
+  if absent or invalid). These entries do not create a check record and are not
+  retrievable via `get-check`.
 
 No number, name or reply body appears in any log line visible outside the action.
 
@@ -576,3 +593,6 @@ Every change is listed here for the owner's approval.
 | 17 | Clarified replay logging in section 7.3: replays are recorded in the call log | "Nothing new written" means no new check record and no new charge; the replay itself is still logged. This matches the assessor requirement (brief section 6, check 14) and the section 7.3 table. |
 | 18 | Added two-path rule for input-validation refusals (section 7.3) | Isomorph's schema check rejects malformed external calls before the action runs (not logged); the action's own validation rejects all callers (logged with REFUSED_INPUT). Without this distinction, implementers might not log builder-call refusals. |
 | 19 | Added reply-table precedence note and 3xx rule (section 9) | Status-code rows take precedence over the JSON/non-JSON catch-all; 3xx is not followed. |
+| 20 | Added IN_PROGRESS placeholder state machine to section 7.0 | The two-transaction protocol left no rule for a concurrent request that arrives while the first is still running. The in-progress state, bounded poll, and stale-claim recovery make the behaviour fully defined. |
+| 21 | Corrected action-level refusal log entry in section 7.3: outcome null, not REFUSED_INPUT | REFUSED_INPUT is defined as a register refusal; action-level validation rejections never reach a register. Logged as a separate action-refusal entry with nullable request fields. |
+| 22 | Clarified section 5 "never kept": means never eligible for kept-answer reuse, not that the record is not stored; added retrievability rule to section 2a | Non-answer outcomes are recorded and retrievable via get-check; they are simply not candidates for accept_kept_answer_days or the 60-second rule. Added get-check/no-answer.json fixture. |

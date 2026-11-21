@@ -68,18 +68,22 @@ row-level policy on the table.
 
 ---
 
-### D-06 — `request_id` uniqueness enforced by unique constraint + request-claim
+### D-06 — `request_id` uniqueness enforced by unique constraint + request-claim state machine
 
 **Decision:** A unique constraint on `(caller, request_id)` in the `checks` table
 prevents two final rows. Before calling the provider, the service inserts a placeholder
-row under that constraint. If the insert conflicts, the action reads the existing row:
-same request → `replayed: true`; different request → 409. This is the "request-slot
-claim" (contract section 7.0).
+row with internal state `IN_PROGRESS` (committed immediately). If that insert conflicts:
+- with a finalised row → `replayed: true` (same request) or 409 (different request);
+- with an `IN_PROGRESS` row → poll up to 10 seconds for finalisation, then replay;
+  if still in-progress after 10 seconds (stale claim), overwrite and proceed as first.
+After the provider call (or any terminal path with no call), a second transaction updates
+the row with the final outcome. `get-check` never returns an `IN_PROGRESS` row.
 
-**Reason:** Coding standards (section 4): "a unique constraint for 'one record per
-request id'". The claim step is needed because the unique constraint alone prevents the
-second *insert* but not the second *provider call*. Without the claim, two identical
-concurrent requests could both reach the provider before either row is committed.
+**Reason:** The unique constraint alone prevents the second *insert* but not the second
+*provider call*, and a two-transaction protocol without an in-progress state leaves no
+defined behaviour when the second request arrives while the first is still running.
+Coding standards (section 4): "a unique constraint for 'one record per request id'";
+contract section 7.0 defines the full state machine.
 
 ---
 

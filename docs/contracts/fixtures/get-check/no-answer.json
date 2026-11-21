@@ -1,0 +1,23 @@
+{
+  "_about": "get-check: retrieve a completed check with outcome NO_ANSWER. Every completed outcome is stored and retrievable, whatever its value — only FOUND and NOT_FOUND are eligible for kept-answer reuse.",
+  "request": {
+    "check_id": "00000000-0000-0000-0000-000000000040"
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000040",
+    "request_id": "crm-pan-no-ans-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "ZZZZT9001Z",
+    "register": "PRACTICE",
+    "outcome": "NO_ANSWER",
+    "reason": "The practice register did not answer. Check again later.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:17:00Z",
+    "reused": false,
+    "charged": false
+  }
+}

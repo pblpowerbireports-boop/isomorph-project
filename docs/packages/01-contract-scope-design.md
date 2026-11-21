@@ -118,6 +118,7 @@ or changed.
 | 0 (self-review) | `6d0d4ca` | n/a | CORRECTION_REQUIRED | 1 material, 2 advisory | n/a |
 | 1 | `0330a68` | `a38e6cb7d581` | CORRECTION_REQUIRED | 0 blocking, 8 material, 1 advisory | n/a |
 | 2 | `4746db2` | `00f4c02d4534` | CORRECTION_REQUIRED | 0 blocking, 7 material, 0 advisory | n/a |
+| 3 | `32a695f` | `7117db1e454a` | CORRECTION_REQUIRED | 0 blocking, 3 material, 0 advisory | n/a |
 
 **Findings and decisions:**
 
@@ -142,6 +143,9 @@ or changed.
 | R2.5 | Material | DESIGN.md D-09 still uses `checked_today` after R1.3 renamed it to `invocations_today` | **Fix** — builder said "fix all seven" | D-09 updated to `invocations_today` with description | see next commit | n/a (documentary) |
 | R2.6 | Material | §7.3 "every call recorded" conflicts with refusal fixtures "nothing is logged"; two paths (Isomorph schema check vs. action validation) not distinguished | **Fix** — builder said "fix all seven" | §7.3 adds two-path rule; refusal fixture `_about` notes updated to explain which path each example shows | see next commit | n/a (documentary) |
 | R2.7 | Material | Package record overclaims: R0.1, R1.4, R1.5 "Test that now catches it" column lists fixtures as protecting tests; JSON.parse check only validates syntax | **Fix** — builder said "fix all seven" | Column updated to "documentary fixture (JSON.parse confirms syntax only; no behavioral test)" for R0.1, R1.4, R1.5 | see next commit | n/a |
+| R3.1 | Material | IN_PROGRESS placeholder has no defined state machine: a concurrent request arriving while first is running has no rule; get-check could return incomplete row | **Fix** — builder said "fix all three" | §7.0 and DESIGN.md D-06: added IN_PROGRESS state, 10s bounded poll, stale-claim recovery, get-check exclusion rule | see next commit | n/a (documentary) |
+| R3.2 | Material | §7.3 says action-level refusals logged as REFUSED_INPUT, but REFUSED_INPUT is defined as register refusal; log fields also assume validated inputs | **Fix** — builder said "fix all three" | §7.3: action-level refusals logged as action-refusal entries with outcome: null, nullable request fields; not retrievable via get-check | see next commit | n/a (documentary) |
+| R3.3 | Material | "never kept" in §5 ambiguous — sounds like records are not stored; get-check for non-answer outcomes undefined | **Fix** — builder said "fix all three" | §5: "never eligible for kept-answer reuse"; §2a: all completed outcomes retrievable via get-check; added get-check/no-answer.json fixture | see next commit | n/a (documentary) |
 
 ## 5. Builder's own checks
 
