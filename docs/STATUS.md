@@ -2,33 +2,38 @@
 
 Where the work stands and what comes next. Updated at every step of every package.
 
-Updated: 2026-11-21, package 01, R3 fixes applied; final checks and owner approval pending.
+Updated: 2026-11-21, package 01 closed; awaiting owner approval.
 
 ## Where it stands
 
-Package 01 building: Codex round 3 returned CORRECTION_REQUIRED (3 material, 0 advisory).
-All three findings approved by the builder ("fix all three"). Corrections applied;
-commit pending. Round 3 is the final permitted round without the owner's permission.
-Full checks will be run on the corrected commit; then the package record is closed and
-the owner's approval is sought.
+Package 01 complete: 3 Codex rounds, 19 findings total (all fixed by builder), final
+commit `42151a0`. Full checks pass (34 fixtures, isomorph check SUCCEEDED). Package
+record closed. Builder's own checks section (section 5) not yet written — awaiting
+the builder.
 
 ## Current package
 
-Package 01, the contract, scope and design. Status: R3 corrections applied; full checks
-and package close pending.
+Package 01, the contract, scope and design. Status: awaiting owner approval.
 
 ## Next
 
-- Run full checks on the corrected commit.
-- Close the package record (commit, exact check counts, remind builder of section 5).
-- List all open questions and all contract changes from the brief for the owner.
-- Stop for the owner's approval.
+- Builder writes section 5 of the package record.
+- Owner reviews and approves (or returns findings).
+- On owner approval: merge to main (owner's word required).
+- Then: package 02 — the service on the practice register.
 
 ## Packages
 
 | # | Name | Status | Record |
 | --- | --- | --- | --- |
-| 01 | Contract, scope and design | building — R3 corrections applied; closing | `docs/packages/01-contract-scope-design.md` |
+| 01 | Contract, scope and design | awaiting owner approval | `docs/packages/01-contract-scope-design.md` |
+
+## Owner's decisions
+
+Every answer the owner gives, in the owner's own words (`WORKING_METHOD.md`, section 3).
+
+| Date | Question | The owner's answer | Recorded where else |
+| --- | --- | --- | --- |
 
 ## Owner's decisions
 

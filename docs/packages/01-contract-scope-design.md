@@ -1,6 +1,6 @@
 # Package 01: contract, scope and design
 
-Branch `pkg/01-contract-scope-design`, from `main` at `5e4566c`. Status: building.
+Branch `pkg/01-contract-scope-design`, from `main` at `5e4566c`. Status: awaiting owner approval.
 
 ## 1. Plan
 
@@ -103,6 +103,10 @@ refusals and for `my-usage`).
 | Before round 1 | `6d0d4ca` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip (container.authenticated-write-failed — kit journeys not updated), 0 fail |
 | Before round 2 | `85cdd54` | `node -e "..."` (JSON.parse all fixtures) | 32 passed, 0 failed |
 | Before round 2 | `85cdd54` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip, 0 fail |
+| Before round 3 | `32a695f` | `node -e "..."` (JSON.parse all fixtures) | 33 passed, 0 failed |
+| Before round 3 | `32a695f` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip, 0 fail |
+| Final commit | `42151a0` | `node -e "..."` (JSON.parse all fixtures) | 34 passed, 0 failed |
+| Final commit | `42151a0` | `isomorph check --app-root . --json` | SUCCEEDED: 19 pass, 1 skip, 0 fail |
 
 **Undo proofs:** not applicable — this package writes documents only; no code is added
 or changed.
@@ -153,8 +157,11 @@ or changed.
 
 ## 6. Close
 
-- Final commit:
-- Full checks on it (commands and exact counts):
-- `docs/STATUS.md` and `docs/OPEN_ITEMS.md` updated:
-- The owner's check (date, outcome, findings):
-- Merged (date, commit, and the owner's words permitting it):
+- Final commit: `42151a0` (R3 corrections)
+- Full checks on it:
+  - `node -e "..."` (JSON.parse all fixtures) on `42151a0`: 34 passed, 0 failed
+  - `isomorph check --app-root . --json` on `42151a0`: SUCCEEDED — 19 pass, 1 skip, 0 fail
+  - `npm run build`, `npm test`, click-through: not run — no code changed in this package
+- `docs/STATUS.md` and `docs/OPEN_ITEMS.md` updated: yes (this commit)
+- The owner's check (date, outcome, findings): *pending*
+- Merged (date, commit, and the owner's words permitting it): *pending*
