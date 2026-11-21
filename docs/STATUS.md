@@ -2,32 +2,32 @@
 
 Where the work stands and what comes next. Updated at every step of every package.
 
-Updated: 2026-11-21, at commit pkg/01 (pre-commit — commit hash to be filled after commit).
+Updated: 2026-11-21, package 01, after Codex round 1 (R1 fixes applied).
 
 ## Where it stands
 
-Package 01 building: the contract, its fixtures, `docs/SCOPE.md` and `docs/DESIGN.md` are
-written. Full checks (fixture JSON validation, `isomorph check`) and self-review (round 0)
-are the next steps before the first Codex round.
+Package 01 building: Codex round 1 returned CORRECTION_REQUIRED (8 material, 1 advisory).
+All nine findings approved by the builder ("fix all nine"). Corrections applied; commit pending.
+After commit, full checks will be re-run before round 2.
 
 ## Current package
 
-Package 01, the contract, scope and design (the brief, section 5, step 1). Status: documents
-written; checks and self-review pending.
+Package 01, the contract, scope and design. Status: R1 corrections applied; full checks and
+round 2 pending.
 
 ## Next
 
-- Run `isomorph check --app-root . --json` and validate all fixtures as JSON (baseline).
-- Self-review (round 0).
-- Codex review round 1.
-- Present findings to the builder; record decisions.
-- After up to 3 rounds: list all open questions and all contract changes; stop for owner's approval.
+- Run `isomorph check` and re-validate all fixtures (full checks on the corrected commit).
+- Build round 2 packet and run Codex.
+- Present findings; record decisions.
+- After up to 3 rounds (or owner permission for more): list open questions and all contract
+  changes from the brief; stop for owner's approval.
 
 ## Packages
 
 | # | Name | Status | Record |
 | --- | --- | --- | --- |
-| 01 | Contract, scope and design | building | `docs/packages/01-contract-scope-design.md` |
+| 01 | Contract, scope and design | building — R1 corrections in progress | `docs/packages/01-contract-scope-design.md` |
 
 ## Owner's decisions
 

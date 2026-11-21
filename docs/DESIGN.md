@@ -55,26 +55,31 @@ midnight in India can flip a date-sensitive test.
 
 ### D-05 — Row lock for daily-limit enforcement
 
-**Decision:** Daily limits are enforced with a `FOR UPDATE` row lock inside a database
-transaction on the `daily_counts` table. Two simultaneous requests at the limit: one
-acquires the lock and passes; the other waits, then finds the limit reached.
+**Decision:** Daily limits are enforced with an `INSERT … ON CONFLICT DO NOTHING`
+followed by `SELECT … FOR UPDATE` on the `daily_counts` table, inside one database
+transaction. The insert ensures the row exists for the first request of the day; the
+lock ensures two simultaneous requests at the limit cannot both pass.
 
-**Reason:** Coding standards (section 4) require database-level enforcement of "rules
-about many rows". Without the row lock, two simultaneous requests at the limit could both
-pass. Isomorph lesson 3 (brief, section 10): `.forUpdate()` inside `ctx.transaction`
-needs an `UPDATE` row-level policy on the table.
+**Reason:** Coding standards (section 4) require database-level enforcement. Without
+the insert-on-conflict, `FOR UPDATE` on a non-existent row locks nothing, so two
+concurrent first-of-day requests could both see "no row" and both pass. Isomorph
+lesson 3 (brief, section 10): `.forUpdate()` inside `ctx.transaction` needs an `UPDATE`
+row-level policy on the table.
 
 ---
 
-### D-06 — `request_id` uniqueness enforced by unique constraint
+### D-06 — `request_id` uniqueness enforced by unique constraint + request-claim
 
-**Decision:** A unique constraint on (caller, request_id) in the `checks` table prevents
-two rows with the same caller + request_id. The service uses this to detect replays and
-conflicts (409) before writing.
+**Decision:** A unique constraint on `(caller, request_id)` in the `checks` table
+prevents two final rows. Before calling the provider, the service inserts a placeholder
+row under that constraint. If the insert conflicts, the action reads the existing row:
+same request → `replayed: true`; different request → 409. This is the "request-slot
+claim" (contract section 7.0).
 
 **Reason:** Coding standards (section 4): "a unique constraint for 'one record per
-request id'". Two identical requests at the same moment must give one paid call and one
-replay — this requires a constraint, not only application logic.
+request id'". The claim step is needed because the unique constraint alone prevents the
+second *insert* but not the second *provider call*. Without the claim, two identical
+concurrent requests could both reach the provider before either row is committed.
 
 ---
 
@@ -120,10 +125,36 @@ defined shape, the fixtures and tests cannot verify the contract.
 
 **Decision:** Every action-level refusal (400, 403, 404, 409) returns JSON with two
 fields: `error` (a code) and `message` (plain English, no internal detail). 401 is
-Isomorph's own and may differ.
+Isomorph's own and may differ. Error messages never echo the submitted number, name,
+key or provider reply.
 
 **Reason:** Callers need a stable shape to parse errors. Codes and messages are defined
 in contract section 6. This aligns with PBL's MCF-001 error conventions.
+
+---
+
+### D-11 — `charged` = paid SurePass invocation only
+
+**Decision:** `charged: true` only when a paid SurePass call was made. Practice
+register checks are always `charged: false`. Daily-limit counts for practice use a
+separate invocation count (`invocations_today` in `my-usage`), not the `charged` flag.
+
+**Reason:** The brief's actions table says "Charged? When SurePass is called." Using
+`charged: true` for practice checks too would contradict every practice fixture (the
+practice register costs nothing). Separating "charged" (paid SurePass call) from
+"invocations_today" (new calls that count against any register's daily limit) makes
+both concepts unambiguous.
+
+---
+
+### D-12 — SurePass catch-all: unrecognised HTTP status → NO_ANSWER
+
+**Decision:** Any HTTP status not explicitly in the reply-to-outcome table (section 9),
+or any response body that is not valid JSON, maps to `NO_ANSWER`.
+
+**Reason:** SurePass could return 3xx, 402, 405, 408, 409 etc. Without a catch-all, the
+adapter has no contractual outcome and might throw or return an HTTP error, breaking
+the contract's guarantee that every register failure becomes a 200 check outcome.
 
 ---
 

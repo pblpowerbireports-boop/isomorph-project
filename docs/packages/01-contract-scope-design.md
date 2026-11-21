@@ -114,6 +114,7 @@ or changed.
 | Round | Commit reviewed | Packet SHA-256 (first 12) | State | Blocking / material / advisory | Owner's permission (rounds after 3) |
 | --- | --- | --- | --- | --- | --- |
 | 0 (self-review) | `6d0d4ca` | n/a | CORRECTION_REQUIRED | 1 material, 2 advisory | n/a |
+| 1 | `0330a68` | `a38e6cb7d581` | CORRECTION_REQUIRED | 0 blocking, 8 material, 1 advisory | n/a |
 
 **Findings and decisions:**
 
@@ -122,6 +123,15 @@ or changed.
 | R0.1 | Material | Contradictory prose in section 2a: "`replayed` is always false … (the original value from when the check was recorded)" | **Fix** — builder said "fix all three" | Clarified to: return the stored value; not reset to false by the lookup | see next commit | fixture `get-check/found.json` shows stored replayed value |
 | R0.2 | Advisory | No `replayed: true` or `reused: true` fixture; both are contract-visible fields tested by the assessor | **Fix** — builder said "fix all three" | Added `check-pan/replayed.json` and `check-pan/reused.json` | see next commit | n/a (documentary) |
 | R0.3 | Advisory | `ZZZZA2050Z` has only a gstins-by-pan practice entry; check-pan/check-gstin behaviour for it was unstated | **Fix** — builder said "fix all three" | Added clarifying note to contract section 8 | see next commit | n/a (documentary) |
+| R1.1 | Material | Concurrent identical requests: unique constraint catches second insert but not second provider call | **Fix** — builder said "fix all nine" | Added request-slot claim protocol to contract §7.0 and DESIGN.md D-06 | see next commit | n/a (documentary) |
+| R1.2 | Material | FOR UPDATE on non-existent daily_counts row locks nothing (first request of day) | **Fix** — builder said "fix all nine" | Added insert-on-conflict before FOR UPDATE to contract §7.2 and DESIGN.md D-05 | see next commit | n/a (documentary) |
+| R1.3 | Material | `charged` semantics conflict: "counted against daily limit" vs. practice fixtures all charged: false | **Fix** — builder said "fix all nine" | `charged` = paid SurePass call only; `invocations_today` in my-usage counts new calls to any register | see next commit | n/a (documentary) |
+| R1.4 | Material | 400-wrong-gstin-check-char message echoes submitted number | **Fix** — builder said "fix all nine" | Changed message to "GSTIN check character is wrong." | see next commit | fixture R1.4 |
+| R1.5 | Material | `checked_at` mismatch: get-check/found uses `10:15:00Z` but check-pan/found uses `10:15:01Z` for same check_id | **Fix** — builder said "fix all nine" | Aligned get-check/found.json to `10:15:01Z` | see next commit | fixture R1.5 |
+| R1.6 | Material | SurePass reply table has no catch-all for unrecognised HTTP statuses | **Fix** — builder said "fix all nine" | Added catch-all row: any other status or non-JSON body → NO_ANSWER | see next commit | n/a (documentary) |
+| R1.7 | Material | `pan` and `gstin` not explicitly forbidden in the wrong action | **Fix** — builder said "fix all nine" | Added explicit prohibition to contract §3 | see next commit | n/a (documentary) |
+| R1.8 | Material | R0.3 note wrong for check-gstin (ZZZZA2050Z as GSTIN → 400, not NOT_FOUND) | **Fix** — builder said "fix all nine" | Corrected note in contract §8 | see next commit | n/a (documentary) |
+| R1.9 | Advisory | STATUS.md still said checks/self-review pending after R0 and R1 | **Fix** — builder said "fix all nine" | Updated STATUS.md to reflect current state | see next commit | n/a |
 
 ## 5. Builder's own checks
 

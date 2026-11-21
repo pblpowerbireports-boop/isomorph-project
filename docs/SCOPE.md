@@ -47,7 +47,7 @@ and error. No field not in the contract crosses the action's response.
 | `check_answers` | The normalized answer (PAN, GSTIN or GSTINs list) for FOUND and NOT_FOUND checks | Linked to `checks`. Never stores the raw provider reply |
 | `caller_settings` | One row per credential: name, registers_allowed, daily_limit_surepass, daily_limit_practice | Changed only by a builder; every change kept in `caller_settings_history` |
 | `caller_settings_history` | Append-only log of every change to `caller_settings` | Who changed it, when, from what to what |
-| `daily_counts` | One row per (caller, register, India date): count of charged checks | Used for daily-limit enforcement with a row lock (FOR UPDATE) |
+| `daily_counts` | One row per (caller, register, India date): count of new invocations (calls that reached the register, excluding replays/reuses/LIMIT_REACHED) | Used for daily-limit enforcement; inserted on-conflict then locked FOR UPDATE |
 
 Data retention is an open question (see `docs/OPEN_ITEMS.md`, item 1).
 

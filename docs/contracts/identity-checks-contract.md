@@ -62,11 +62,11 @@ Response (200):
   "caller": "service:crm-server",
   "date": "2026-11-20",
   "surepass": {
-    "checked_today": 5,
+    "invocations_today": 5,
     "daily_limit": 100
   },
   "practice": {
-    "checked_today": 12,
+    "invocations_today": 12,
     "daily_limit": null
   }
 }
@@ -74,8 +74,10 @@ Response (200):
 
 - `caller`: the caller's identity (`service:<clientId>`).
 - `date`: today's India date (`YYYY-MM-DD`, Asia/Kolkata).
-- `surepass`, `practice`: each register's count and limit. `daily_limit` is `null`
-  when no limit is set for this caller.
+- `surepass`, `practice`: each register's invocation count and limit.
+  `invocations_today` counts new calls that reached the register today (excluding
+  replays, reuses, and calls refused by `LIMIT_REACHED`); for SurePass this equals
+  the number of charged calls. `daily_limit` is `null` when no limit is set.
 
 ---
 
@@ -114,7 +116,10 @@ Response (200):
   within that many days, the service returns that answer with `reused: true` and pays for
   nothing. `0` means "check now". The caller decides; the service never decides that an
   old answer is good enough on its own.
-- **Any field not listed above is refused with 400.**
+- `pan` is the number field for `check-pan` and `gstins-by-pan` only; it is forbidden
+  in `check-gstin` (400). `gstin` is the number field for `check-gstin` only; it is
+  forbidden in `check-pan` and `gstins-by-pan` (400).
+- **Any other field not listed above is refused with 400.**
 
 **Double-click protection.** A fresh check of the same number on the same register within
 60 seconds of a `FOUND` or `NOT_FOUND` answer returns that answer with `reused: true`,
@@ -173,7 +178,11 @@ register call is an outcome, not an HTTP error.
 - `reused`: `true` when an earlier answer for the same number was returned
   (`accept_kept_answer_days` or the 60-second double-click rule), without a new
   register call.
-- `charged`: `true` when this call was counted against the caller's daily limit.
+- `charged`: `true` when a paid SurePass call was made for this check. Always `false`
+  for practice-register checks (no money is spent). A `NOT_FOUND`, `NO_ANSWER`,
+  `REFUSED_INPUT` outcome from SurePass is still charged if SurePass was actually
+  called. `LIMIT_REACHED`, `NOT_SET_UP`, replays and reuses are never charged.
+  Practice-register calls count against the practice daily limit but are never charged.
 
 ---
 
@@ -319,12 +328,24 @@ One settings record per credential (`service:<clientId>`):
   Asia/Kolkata). `null` means no limit.
 - `daily_limit_practice`: maximum practice checks per India day. `null` means no limit.
 
+### 7.0 Request-slot claim (concurrent safety)
+
+Before calling the provider or reading any kept answer, the service atomically claims
+a request slot by inserting a check row under the `(caller, request_id)` unique
+constraint. If that insert conflicts, the action reads the existing row: same request
+body → returns the existing answer with `replayed: true`; different request body →
+returns 409. This ensures the second of two identical concurrent requests never reaches
+the provider. The claim, the provider call, and the final row update all occur within
+one database transaction.
+
 ### 7.2 Daily limits
 
-- Counts per caller, per register, per India day.
+- Counts **new invocations** per caller, per register, per India day — calls that reached
+  the register, excluding replays, reuses, and calls refused by `LIMIT_REACHED`.
 - Two checks arriving at the limit simultaneously: exactly one passes, the other gets
-  `LIMIT_REACHED`. This is enforced by a database row lock (FOR UPDATE inside a
-  transaction).
+  `LIMIT_REACHED`. This is enforced by a database row lock (`FOR UPDATE` inside a
+  transaction), applied after an insert-on-conflict ensures the row exists:
+  `INSERT INTO daily_counts … ON CONFLICT DO NOTHING`, then `SELECT … FOR UPDATE`.
 - The practice register has a daily limit too, so the limit can be tested without paying.
 
 ### 7.3 The call log
@@ -340,7 +361,7 @@ Every call that reaches an action is recorded:
 | number | the number checked (stored; masked to last 4 characters in the page) |
 | register | `SUREPASS` or `PRACTICE` |
 | outcome | the outcome code |
-| `charged` | whether this call counted against the limit |
+| `charged` | whether a paid SurePass call was made (never true for practice) |
 | `reused` | whether an earlier answer was returned |
 | `replayed` | whether the request_id was seen before |
 | `check_id` | UUID |
@@ -394,9 +415,10 @@ check-character algorithm, as implemented in `accounts/identity_checks.py`):
 - `37ZZZZT9002Z1ZB`: state 37, PAN `ZZZZT9002Z`, entity 1, check `B`
 - `37ZZZZT9003Z1ZA`: state 37, PAN `ZZZZT9003Z`, entity 1, check `A`
 
-`ZZZZA2050Z` has only a `gstins-by-pan` entry in the practice register. For `check-pan`
-and `check-gstin`, this PAN returns `NOT_FOUND` (the general rule: any number without a
-matching entry for that action returns `NOT_FOUND`).
+`ZZZZA2050Z` has only a `gstins-by-pan` entry in the practice register. `check-pan`
+for this PAN returns `NOT_FOUND` (no entry for the PAN action). `check-gstin` requires
+a 15-character GSTIN, not a PAN — a request passing `ZZZZA2050Z` as a GSTIN is refused
+with 400 (malformed GSTIN) before the practice register is consulted.
 
 The cancelled GSTIN (`27AAACP7361R2ZP`) from the CRM's practice register is kept and
 serves the "cancelled GSTIN" fixture. The PAN `AAACP7361R` with its three GSTINs (two
@@ -443,6 +465,7 @@ Request body: `{ "id_number": "<number>" }` with `Authorization: Bearer <key>` a
 | 400 | `REFUSED_INPUT` |
 | 401, 403 | `NOT_SET_UP` |
 | 429, 5xx, timeout (20 seconds), network failure | `NO_ANSWER` |
+| Any other HTTP status, or a response body that is not valid JSON | `NO_ANSWER` |
 
 **Guards (from the CRM's tested code):**
 
@@ -515,3 +538,7 @@ Every change is listed here for the owner's approval.
 | 9 | Added: practice numbers for all missing outcomes, with their check characters | The brief says to add these (section 4.7) but does not specify the numbers. They are defined in section 8 of this contract with their computed check characters shown. |
 | 10 | Clarified: `get-check` takes either `check_id` or `request_id`, not both; added full request and response shapes for `get-check` and `my-usage` (section 2a) | The brief's section 4.2 says "by `check_id` or `request_id`" but the request shape in section 4.3 does not cover `get-check`, and `my-usage`'s response shape is not defined. Section 2a fills both gaps. |
 | 11 | Added: error response body format for action-level refusals (400, 403, 404, 409) in section 6 | The brief specifies status codes for refusals but not the response body. A defined shape is needed for fixtures, tests and callers. |
+| 12 | Added: request-slot claim protocol (section 7.0) for concurrent-safety guarantee | The brief states two identical concurrent requests give one paid call and one replay. Without an atomic request-claim step, both requests could reach the provider before either inserts a row. |
+| 13 | Clarified: `charged` = paid SurePass call; practice daily counts use a separate invocation count (sections 4 and 7.2) | The brief's actions table says "Charged? When SurePass is called". Practice checks cost nothing but do count against a daily limit. Using `charged` for both would contradict every practice fixture. |
+| 14 | Added: `pan`/`gstin` explicitly forbidden in the wrong action (section 3) | Both fields are listed in the contract, so the "unknown field" rule would not catch them. Explicit rejection prevents ambiguous behaviour and cross-action identity of replays. |
+| 15 | Added: catch-all for unrecognised SurePass HTTP statuses (section 9) | The table was exhaustive for expected codes but left no rule for 3xx, 402, 405, 408, 409 etc. Any such response is NO_ANSWER. |

@@ -9,6 +9,6 @@
   "http_status": 400,
   "response": {
     "error": "bad_request",
-    "message": "GSTIN check character is wrong: expected W for 24AAACP7361R1Z."
+    "message": "GSTIN check character is wrong."
   }
 }
