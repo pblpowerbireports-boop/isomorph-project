@@ -48,7 +48,7 @@ What now exists, briefly, pointing at the files.
 
 ## 4. Reviews
 
-| Round | Commit reviewed | Packet SHA-256 (first 12) | State | Blocking / material / advisory | Owner's permission (rounds after 3) |
+| Round | Commit reviewed | Packet SHA-256 (first 12) | State | Blocking / material / advisory | Why this round (rounds after 3) |
 | --- | --- | --- | --- | --- | --- |
 | 0 (self-review) | | | | | |
 

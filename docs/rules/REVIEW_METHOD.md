@@ -17,8 +17,10 @@ must be in the packet.
 
 - After a package's full checks pass (`WORKING_METHOD.md`, section 2, step 6).
 - Package 01, which writes documents only, is reviewed the same way, on the documents.
-- At most three rounds per package. **Each round after the third only on the owner's permission for that one round**,
-  never chained, never assumed from an earlier permission.
+- The builder runs rounds 1 to 3. After the third, another round follows whenever a material or blocking finding was
+  fixed; for other findings the builder judges, and asks the owner when in doubt (`WORKING_METHOD.md`, section 2, step
+  6). The builder decides up to round 9; **each round after the ninth only on the owner's permission for that one
+  round.** The record says why each round after the third was run.
 
 ## 3. One round, step by step
 

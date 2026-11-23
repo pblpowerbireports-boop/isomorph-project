@@ -44,8 +44,14 @@ Each package has:
    fixtures read as valid JSON) and says what it did not run and why.
 5. **Self-review.** Claude reviews its own whole diff (Claude Code's `/code-review` where it is available). Its findings
    are recorded as round 0 and decided by the builder like any other.
-6. **Codex review rounds,** as `REVIEW_METHOD.md` says. At most three. **Each round after the third only on the owner's
-   permission for that one round.**
+6. **Codex review rounds,** as `REVIEW_METHOD.md` says. The builder runs rounds 1 to 3. **After round 3, the builder
+   decides whether more rounds are needed:** when a round found a material or blocking finding, it is fixed and another
+   round follows; for other findings, the builder judges whether they are important enough for another round; **when
+   in doubt, the builder asks the owner.** The builder decides up to round 9; **each round after the ninth only on
+   the owner's permission for that round.** The record says why each round after the third was run. Keep going until a
+   round is `ACCEPTED`, or until the builder has decided each finding left, with a reason, as not a defect or not
+   important to fix now (written into `docs/OPEN_ITEMS.md` if it is to be fixed later). Never close a package while
+   the last round is not `ACCEPTED` and a finding in it is not yet decided.
 7. **Corrections.** The builder decides each finding (`REVIEW_METHOD.md`, section 5). Each fix gets its focused test
    and undo proof. A defect in behaviour, security, data, the contract or a test's ability to fail is fixed at once
    and reviewed again. Small wording fixes in records may be gathered and made together once the code is stable. An
@@ -54,7 +60,7 @@ Each package has:
 8. **Close the record.** Final checks on the final commit, with exact counts. `docs/STATUS.md` and `docs/OPEN_ITEMS.md`
    updated. Claude reminds the builder to write their own section.
 9. **The owner's check.** The owner audits the package and, where there is a screen, looks at it. Findings go back to
-   step 7; a change of code after that is reviewed again (a round past the third only on the owner's permission).
+   step 7; a change of code or of the contract after that is reviewed again (step 6).
 10. **Merge.** Only on the owner's word. Where the repository is on GitHub, the pull request is the very last step:
     raised only on the owner's permission, merged only on the owner's separate, later permission, and no correction
     follows it.
@@ -63,7 +69,8 @@ Each package has:
 
 - Approval of the contract, `docs/SCOPE.md` and `docs/DESIGN.md` (package 01), and of any later change to the contract,
   the scope, the brief or these rules.
-- Each review round after the third: one permission for one round, never chained and never assumed from an earlier
+- Whether another review round is needed after the third, whenever the builder is in doubt (section 2, step 6).
+- Each review round after the ninth: one permission for one round, never chained and never assumed from an earlier
   one.
 - Raising a pull request, and, separately, merging it.
 - Switching on external access, making a service credential, entering a key, any call to SurePass or another paid

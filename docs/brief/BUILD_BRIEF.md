@@ -325,9 +325,10 @@ one paid call and one replay.
 **The rules are in the repository from the first commit:** `docs/rules/WORKING_METHOD.md`, `CODING_STANDARDS.md`,
 `TESTING.md` and `REVIEW_METHOD.md`, from `pbl-transport/pbl-dev-standards`. They are the method the CRM is built by,
 made to fit an Isomorph app, and they win where they differ from the isomorph skill. In short, every package goes:
-plan, build, focused tests each with its undo proof, full checks with exact counts, self-review, up to three Codex
-review rounds (each round after the third only on the owner's word for that round), every finding decided by the
-builder and recorded, the records closed, then the owner's audit. Merging, and a pull request where there is one, only
+plan, build, focused tests each with its undo proof, full checks with exact counts, self-review, Codex review rounds
+(after the third, more whenever a material finding was fixed, and the owner asked when the builder is in doubt; each
+round after the ninth only on the owner's word for that round), every
+finding decided by the builder and recorded, the records closed, then the owner's audit. Merging, and a pull request where there is one, only
 on the owner's word.
 
 **Roles.** The builder (the PBL team member) runs Claude Code and Codex and decides every review finding. Claude Code

@@ -1,6 +1,10 @@
 # Package 01: contract, scope and design
 
-Branch `pkg/01-contract-scope-design`, from `main` at `5e4566c`. Status: awaiting owner approval.
+Branch `pkg/01-contract-scope-design`, from `main` at `5e4566c`. Status: corrections to the owner's audit in progress.
+
+**Note added 2026-11-23:** The owner audited this package on 21 November 2026 at commit `e8fd983` and returned it (4
+lapses, 4 material, 3 advisories). We are in `WORKING_METHOD.md` step 7. The findings are in the findings table
+(`A-L1`–`A-L4`, `A-C1`–`A-C7`); each is decided below with the builder's reason.
 
 ## 1. Plan
 
@@ -117,12 +121,13 @@ or changed.
 
 ## 4. Reviews
 
-| Round | Commit reviewed | Packet SHA-256 (first 12) | State | Blocking / material / advisory | Owner's permission (rounds after 3) |
+| Round | Commit reviewed | Packet SHA-256 (first 12) | State | Blocking / material / advisory | Why this round (rounds after 3) |
 | --- | --- | --- | --- | --- | --- |
 | 0 (self-review) | `6d0d4ca` | n/a | CORRECTION_REQUIRED | 1 material, 2 advisory | n/a |
 | 1 | `0330a68` | `a38e6cb7d581` | CORRECTION_REQUIRED | 0 blocking, 8 material, 1 advisory | n/a |
 | 2 | `4746db2` | `00f4c02d4534` | CORRECTION_REQUIRED | 0 blocking, 7 material, 0 advisory | n/a |
 | 3 | `32a695f` | `7117db1e454a` | CORRECTION_REQUIRED | 0 blocking, 3 material, 0 advisory | n/a |
+| Owner's audit | `e8fd983` | n/a | returned | 4 lapses, 4 material, 3 advisory | n/a — the owner's audit, 21 November 2026 |
 
 **Findings and decisions:**
 
@@ -150,6 +155,17 @@ or changed.
 | R3.1 | Material | IN_PROGRESS placeholder has no defined state machine: a concurrent request arriving while first is running has no rule; get-check could return incomplete row | **Fix** — builder said "fix all three" | §7.0 and DESIGN.md D-06: added IN_PROGRESS state, 10s bounded poll, stale-claim recovery, get-check exclusion rule | see next commit | n/a (documentary) |
 | R3.2 | Material | §7.3 says action-level refusals logged as REFUSED_INPUT, but REFUSED_INPUT is defined as register refusal; log fields also assume validated inputs | **Fix** — builder said "fix all three" | §7.3: action-level refusals logged as action-refusal entries with outcome: null, nullable request fields; not retrievable via get-check | see next commit | n/a (documentary) |
 | R3.3 | Material | "never kept" in §5 ambiguous — sounds like records are not stored; get-check for non-answer outcomes undefined | **Fix** — builder said "fix all three" | §5: "never eligible for kept-answer reuse"; §2a: all completed outcomes retrievable via get-check; added get-check/no-answer.json fixture | see next commit | n/a (documentary) |
+| A-L1 | Lapse | Round 3's fixes were never reviewed. Round 3 was `CORRECTION_REQUIRED` with 3 material; its fix commit `42151a0` added new design (in-progress state, 10s wait, stale-claim takeover). Under the new rule, a fixed material finding always means another round; the package was closed instead. | *pending* | *pending* | *pending* | n/a (process) |
+| A-L2 | Lapse | The decisions from rounds 1–3 were recorded as "builder said 'fix all nine'" etc., with the "Why" column saying what changed rather than why the builder agreed. R2.4 shows the risk: Codex said `AABCP2468M` was "not a documented practice number" while saying it could not see the register; the number is in `crm-reference/.../practice_register.json`, so "Not a defect, after checking" was the right decision. The change was harmless; the missing check is the lapse. | *pending* | *pending* | *pending* | n/a (process) |
+| A-L3 | Lapse | Records disagree with each other: (a) the four 400 fixtures still say a malformed call "logs a REFUSED_INPUT entry" when §7.3 now makes it an entry with `outcome: null`; (b) contract §10 change 18 says "logged with REFUSED_INPUT", which change 21 reverses; (c) the contract's line 5 says the changes are "listed in section 9", they are in section 10; the record says "section 2 of the contract"; §7.0 comes after §7.1 (renumber); (d) `docs/STATUS.md` has "Owner's decisions" twice; (e) the record's Close names `42151a0` as the final commit, the package's final commit is `e8fd983`. | *pending* | *pending* | *pending* | n/a (records) |
+| A-L4 | Lapse | "Builder's own checks" names nothing the builder checked. It says what was read and agreed, and that each of the 22 changes "has a reason recorded", while change 18 contradicts change 21. The builder rewrites it after the fixes: what the builder ran, opened or compared, and anything the builder found that Claude or Codex missed. | *pending* | *pending* | *pending* | n/a (record) |
+| A-C1 | Material | A "stale" claim is taken over while the first request is still running. Contract §7.0 says the second identical request waits up to 10 seconds, then "overwrites the claim and proceeds as the first request". A SurePass call may run 20 seconds before its timeout (§9), and `ZZZZT9004Z` waits 18 seconds on purpose. Two identical requests at the same moment can make two paid calls, and both then write the same row. Breaks brief 4.5 ("one paid call and one replay") and PBL's check 7. | *pending* | *pending* | *pending* | *pending* |
+| A-C2 | Material | The slow practice number should answer. Brief 4.7 asks for "a slow answer just inside the time limit": an answer that arrives slowly and is still taken. The contract makes `ZZZZT9004Z` give `NO_ANSWER`, a change from the brief not listed in §10. | *pending* | *pending* | *pending* | *pending* |
+| A-C3 | Material | A reused answer loses its date and its evidence. Under `accept_kept_answer_days` an answer can be up to 366 days old, but the reused response has today's `checked_at`, `register_reference: null`, and nothing to say when the register gave it. The CRM re-checks answers older than six months, so it would date a 300-day-old answer as today's, and the paid evidence could not be traced. | *pending* | *pending* | *pending* | *pending* |
+| A-C4 | Material | A builder's own calls are not covered. §1 says the caller inside an action is `service:<clientId>`, but builders can run the actions from inside the app too, and nothing says which registers, limits or settings apply to them. As written, nothing stops a builder spending SurePass money with no limit. | *pending* | *pending* | *pending* | *pending* |
+| A-C5 | Advisory | Whose kept answers may be reused is not written into the contract. Owner's decision of 21 November 2026 (STATUS.md): any caller's `FOUND` or `NOT_FOUND` answer on the same register may be reused under `accept_kept_answer_days`; check records and `get-check` stay per caller; the 60-second double-click rule stays per caller. | **Fix** — owner has decided | Write the rule into contract §3 and §4; list in §10. | *pending* | documentary fixture |
+| A-C6 | Advisory | The contract carries SQL (§7.2: `INSERT … ON CONFLICT DO NOTHING`, `SELECT … FOR UPDATE`) and the design leaves gaps: it does not say the daily-count lock is held only in a short transaction, never across a provider call. Isomorph gives up a lock wait after 5 seconds, so a lock held through a 20-second SurePass call would make the caller's next call fail. | *pending* | *pending* | *pending* | *pending* |
+| A-C7 | Advisory | The wrong-check-character fixture says Isomorph's schema rejects it. A JSON Schema can check a pattern but cannot compute a check character. So an outside call with a wrong check character reaches the action, is refused there (400) and is logged. | *pending* | *pending* | *pending* | *pending* |
 
 ## 5. Builder's own checks
 
@@ -157,11 +173,14 @@ I read BUILD_BRIEF.md in full before the work started and confirmed the starting
 
 ## 6. Close
 
-- Final commit: `42151a0` (R3 corrections)
-- Full checks on it:
-  - `node -e "..."` (JSON.parse all fixtures) on `42151a0`: 34 passed, 0 failed
-  - `isomorph check --app-root . --json` on `42151a0`: SUCCEEDED — 19 pass, 1 skip, 0 fail
-  - `npm run build`, `npm test`, click-through: not run — no code changed in this package
-- `docs/STATUS.md` and `docs/OPEN_ITEMS.md` updated: yes (this commit)
-- The owner's check (date, outcome, findings): *pending*
-- Merged (date, commit, and the owner's words permitting it): *pending*
+- Final commit of first attempt: `e8fd983` (builder's own-checks section). Checks on `42151a0` (the last commit that
+  changed anything the checks cover): `node -e "..."` JSON.parse: 34 passed, 0 failed; `isomorph check --app-root .
+  --json`: SUCCEEDED — 19 pass, 1 skip, 0 fail. `npm run build`, `npm test`, click-through: not run — no code in this
+  package.
+- The owner audited `e8fd983` on 2026-11-21 and **returned** the package (4 lapses, 4 material, 3 advisories).
+- Corrections and round 4 Codex: *pending*.
+- Final commit after corrections: *pending*.
+- Full checks on the final commit after corrections: *pending*.
+- `docs/STATUS.md` and `docs/OPEN_ITEMS.md` updated: yes (this commit).
+- The owner's re-check (date, outcome, findings): *pending*.
+- Merged (date, commit, and the owner's words permitting it): *pending*.
