@@ -128,6 +128,7 @@ or changed.
 | 2 | `4746db2` | `00f4c02d4534` | CORRECTION_REQUIRED | 0 blocking, 7 material, 0 advisory | n/a |
 | 3 | `32a695f` | `7117db1e454a` | CORRECTION_REQUIRED | 0 blocking, 3 material, 0 advisory | n/a |
 | Owner's audit | `e8fd983` | n/a | returned | 4 lapses, 4 material, 3 advisory | n/a — the owner's audit, 21 November 2026 |
+| 4 | *pending — set at packet build* | *pending* | *pending* | *pending* | The owner's audit returned 4 material findings and 3 advisories; `WORKING_METHOD.md` section 2, step 6 requires another round after any material fix. Focus at `.review/01-contract-scope-design/round-4/focus.md` names each audit item. |
 
 **Findings and decisions:**
 

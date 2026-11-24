@@ -3,7 +3,7 @@
 PBL Identity Checks: a small Isomorph app that checks Indian PAN and GSTIN numbers
 and answers PBL's internal systems through a fixed, provider-neutral contract.
 
-Updated: 2026-11-21, package 01 (contract, scope and design).
+Updated: 2026-11-24, package 01 owner-audit corrections.
 
 ---
 
@@ -12,7 +12,7 @@ Updated: 2026-11-21, package 01 (contract, scope and design).
 | Role | Who | Can do |
 | --- | --- | --- |
 | `service-caller` | An external system (e.g. the CRM server) with a service credential | Call the five actions: `check-pan`, `check-gstin`, `gstins-by-pan`, `get-check`, `my-usage` |
-| `builder` (Isomorph built-in) | A named person with Isomorph builder access | Use the app in development; view the builders' page; change callers' settings |
+| `builder` (Isomorph built-in) | A named person with Isomorph builder access | Use the app in development; view the builders' page; change callers' settings. When a builder calls an action from inside the app, the practice register is always used, regardless of what `register` the request says — a builder's click can never spend SurePass money (see contract §1). |
 
 There is no end-user sign-in. Any signed-in person who is not a builder is refused (403)
 when they reach an action.
