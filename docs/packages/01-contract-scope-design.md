@@ -167,9 +167,29 @@ or changed.
 | A-C6 | Advisory | The contract carries SQL (§7.2: `INSERT … ON CONFLICT DO NOTHING`, `SELECT … FOR UPDATE`) and the design leaves gaps: it does not say the daily-count lock is held only in a short transaction, never across a provider call. Isomorph gives up a lock wait after 5 seconds, so a lock held through a 20-second SurePass call would make the caller's next call fail. | **Fix** — I agree with the owner. | The contract says what the caller sees; the design says how we do it. SQL belongs in the design. The lock cannot be held during the SurePass call, because Isomorph drops a lock wait at 5 seconds and SurePass can take 20. The design must say this so nobody builds it wrong. | *pending* | *pending* |
 | A-C7 | Advisory | The wrong-check-character fixture says Isomorph's schema rejects it. A JSON Schema can check a pattern but cannot compute a check character. So an outside call with a wrong check character reaches the action, is refused there (400) and is logged. | **Fix** — I agree with the owner. | A JSON schema can't compute a check character — only code can. The fixture must say our code refuses it, so a future builder knows to write that check. Otherwise someone thinks Isomorph handles it and the check never gets written. | *pending* | *pending* |
 
+**Note added 2026-11-23 (owner's audit, A-L2 acknowledgment).** The decision recorded
+against **R2.4** — Codex said practice number `AABCP2468M` was "not a documented practice
+number" and the builder agreed with the fix — was incorrect at the time, though harmless
+in result. On re-checking the CRM's practice register at
+`pbl-dev-standards/projects/identity-checks/crm-reference/backend/app/modules/identity_validation/providers/practice_register.json`,
+`AABCP2468M` is present. The right R2.4 decision should have been **"Not a defect: this
+number is in the CRM's practice register"**, keeping the original PAN in the 409 fixture.
+The change made (to `ZZZZT9001Z`) does not break anything — ZZZZT9001Z is also a valid
+practice number — so the fixture's correctness is unaffected. The lapse was not the
+change itself but the missing check against the register. The R2.4 row above is left
+as it was; this note records the right answer and the habit change (see A-L2 in the
+findings table).
+
 ## 5. Builder's own checks
 
-I read BUILD_BRIEF.md in full before the work started and confirmed the starting prompt matched the brief's Section 0. I reviewed every Codex finding across all three rounds (19 findings total) and made the decision on each one myself — all were genuine and I approved fixing all of them. I checked that the three open questions (data retention policy, holder_type null case, and whether an empty GSTIN list is FOUND or NOT_FOUND) are real gaps not resolved by the brief, and confirmed they are listed in docs/OPEN_ITEMS.md. I read the 22 changes from the brief's draft in contract Section 10 and am satisfied each one has a reason recorded. The contract as it stands reflects the brief's intent.
+*To be rewritten by the builder (Naidu) after the audit corrections and Codex round 4
+are done, in the builder's own words. Per `docs/rules/WORKING_METHOD.md` section 1,
+only the builder writes this section — Claude never writes it and never suggests its
+words. See A-L4 in the findings table for what to include: things the builder actually
+ran, opened or compared, and anything the builder found that Claude or Codex missed.*
+
+*Previous content (first attempt, pre-audit) is kept at commit `e8fd983` in git
+history; it was found to list only what was read, not what was checked.*
 
 ## 6. Close
 
