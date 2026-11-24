@@ -8,6 +8,9 @@ Changes from the brief's draft (section 4) are listed in section 10.
 
 ## 1. How a caller reaches the service
 
+**Service callers (the CRM, Hiring app, Email app and so on).** Every outside caller
+reaches the service this way:
+
 - A caller obtains a token from Isomorph using its **service credential** (OAuth 2.0 client
   credentials flow). The token expires after one hour; callers refresh it before it expires.
 - Every call: `POST <app's API address>/_harbour/api/<action>`
@@ -19,6 +22,25 @@ Changes from the brief's draft (section 4) are listed in section 10.
   check for builders calling from inside the app.
 - Inside the action, the caller's identity is `service:<clientId>`. All settings, limits
   and call-log entries use this identity.
+
+**Builders calling from inside the app.** A PBL builder who has signed into the dev app
+can also reach the actions (for development and debugging). Their rules are different
+and stricter:
+
+- The action sees the caller as `builder:<email>` (the Isomorph builder identity), not
+  as a service credential.
+- **A builder's call always uses the practice register, whatever the request says.**
+  If the request's `register` is `"surepass"`, the service returns `NOT_SET_UP` with
+  reason "Identity checks with SurePass are not set up for this caller." No SurePass
+  call is made, no caller-settings record is consulted, no setting can change this —
+  the rule is wired into the contract. See fixture
+  `check-pan/not-set-up-builder.json`.
+- A builder's call still passes through the action's own input validation (same rules
+  as every service call) and is still recorded in the call log, with `caller =
+  builder:<email>`.
+- Real-number tests of SurePass (brief section 5, step 6) therefore always use a
+  **service credential** with a daily limit — never a builder's identity. A builder's
+  click can never spend SurePass money.
 
 ---
 
@@ -634,3 +656,4 @@ Every change is listed here for the owner's approval.
 | 23 | Corrected the stale-claim takeover rule in section 7.2: wait extended from 10 s to 25 s; added claim-token so a late provider reply cannot overwrite a newer claim; added caller-timing note telling callers to show a loading indicator | A SurePass call can take 20 seconds and `ZZZZT9004Z` waits 18 seconds on purpose, so a 10-second wait could declare a live request stale and lead to two paid calls writing the same row. 25 s is longer than SurePass's 20 s timeout plus the result write, so a live request cannot be taken over; the claim token stops a late reply from overwriting a newer claim. Added `check-pan/reused-after-wait.json` fixture. |
 | 24 | Corrected the slow practice number: `ZZZZT9004Z` now returns `FOUND` after 18 seconds (with `registered_name: "PRACTICE SLOW ANSWER LIMITED"`, `holder_type: null`), not `NO_ANSWER`. Added `ZZZZT9005Z` which delays past the 20-second timeout and returns `NO_ANSWER`. | Brief 4.7 asks for "a slow answer just inside the time limit" — a slow answer that arrives and is still taken. `ZZZZT9004Z` as `NO_ANSWER` tested nothing useful for the slow case. The pair proves both the slow-kept case and the timeout-cut-off case, without paying SurePass. Fixtures added. |
 | 25 | Added `answered_at` to every check response; on a reused answer `register_reference` and `register_time` are the **original** register's values, unchanged; the response's `check_id` on a reused answer is this caller's new id, not the original's. | Under `accept_kept_answer_days` an answer may be up to 366 days old. The old contract gave the caller today's `checked_at`, `register_reference: null`, and `register_time: null` — the CRM would then see the reused answer as "today's" and never re-check it; PBL also could not trace which paid call the answer came from. `answered_at` tells the caller the real age; keeping the original register reference and time preserves the audit trail. A new `check_id` protects per-caller isolation (owner's C5 decision). Every check-response fixture updated. |
+| 26 | Section 1 rewritten to cover both caller kinds: service credentials (unchanged) and builders calling from inside the app. A builder's call always uses the practice register — any request for SurePass returns `NOT_SET_UP`, wired into the contract (no setting can change it). Caller log identity is `builder:<email>`. | The brief's lesson 4 (Isomorph: `expose.input` skipped for builder calls) meant a builder could reach every action, with no stated register, limit or settings. As written, a builder's click could cost PBL SurePass money with no daily cap. Routing every builder call to the practice register — regardless of settings — closes this door and makes real-number tests only possible with a service credential (brief section 5, step 6). New fixture `check-pan/not-set-up-builder.json`. |

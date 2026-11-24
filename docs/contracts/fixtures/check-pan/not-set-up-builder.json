@@ -1,0 +1,27 @@
+{
+  "_about": "check-pan called from inside the app by a builder, asking for the surepass register. Per contract §1, every builder call is routed to the practice register regardless of settings; a request for surepass returns NOT_SET_UP with no SurePass call made. The log entry carries caller: builder:<email>.",
+  "request": {
+    "request_id": "builder-pan-sp-001",
+    "pan": "AAACP7361R",
+    "register": "surepass",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000044",
+    "request_id": "builder-pan-sp-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "AAACP7361R",
+    "register": "SUREPASS",
+    "outcome": "NOT_SET_UP",
+    "reason": "Identity checks with SurePass are not set up for this caller.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "answered_at": "2026-11-20T10:15:50Z",
+    "checked_at": "2026-11-20T10:15:50Z",
+    "reused": false,
+    "charged": false
+  }
+}
