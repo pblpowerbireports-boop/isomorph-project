@@ -146,9 +146,24 @@ Response (200):
   forbidden in `check-pan` and `gstins-by-pan` (400).
 - **Any other field not listed above is refused with 400.**
 
+**Whose kept answers may be reused.** Under `accept_kept_answer_days`, the service may
+reuse **any caller's** earlier `FOUND` or `NOT_FOUND` answer on the same register for
+the same number, not only this caller's. The owner decided this on 21 November 2026:
+the registered name and status of a number is the same for everyone, so paying twice
+for the same answer is waste. **What stays per caller:**
+
+- Each caller's check records and call log are its own. `get-check` only returns the
+  caller's own checks; a `check_id` from another caller is `404`. `my-usage` only
+  counts this caller's invocations.
+- The 60-second double-click rule below applies per caller (two different callers
+  within 60 seconds each pay their own call, unless one is reused under `accept_kept_answer_days`).
+- The reused answer's **`check_id` is always this caller's new id**, never another
+  caller's (per section 4).
+
 **Double-click protection.** A fresh check of the same number on the same register within
-60 seconds of a `FOUND` or `NOT_FOUND` answer returns that answer with `reused: true`,
-counting as one paid call. This applies even when `accept_kept_answer_days` is 0.
+60 seconds of this caller's own `FOUND` or `NOT_FOUND` answer returns that answer with
+`reused: true`, counting as one paid call. This applies even when
+`accept_kept_answer_days` is 0, and is per caller.
 
 ---
 
@@ -657,3 +672,4 @@ Every change is listed here for the owner's approval.
 | 24 | Corrected the slow practice number: `ZZZZT9004Z` now returns `FOUND` after 18 seconds (with `registered_name: "PRACTICE SLOW ANSWER LIMITED"`, `holder_type: null`), not `NO_ANSWER`. Added `ZZZZT9005Z` which delays past the 20-second timeout and returns `NO_ANSWER`. | Brief 4.7 asks for "a slow answer just inside the time limit" — a slow answer that arrives and is still taken. `ZZZZT9004Z` as `NO_ANSWER` tested nothing useful for the slow case. The pair proves both the slow-kept case and the timeout-cut-off case, without paying SurePass. Fixtures added. |
 | 25 | Added `answered_at` to every check response; on a reused answer `register_reference` and `register_time` are the **original** register's values, unchanged; the response's `check_id` on a reused answer is this caller's new id, not the original's. | Under `accept_kept_answer_days` an answer may be up to 366 days old. The old contract gave the caller today's `checked_at`, `register_reference: null`, and `register_time: null` — the CRM would then see the reused answer as "today's" and never re-check it; PBL also could not trace which paid call the answer came from. `answered_at` tells the caller the real age; keeping the original register reference and time preserves the audit trail. A new `check_id` protects per-caller isolation (owner's C5 decision). Every check-response fixture updated. |
 | 26 | Section 1 rewritten to cover both caller kinds: service credentials (unchanged) and builders calling from inside the app. A builder's call always uses the practice register — any request for SurePass returns `NOT_SET_UP`, wired into the contract (no setting can change it). Caller log identity is `builder:<email>`. | The brief's lesson 4 (Isomorph: `expose.input` skipped for builder calls) meant a builder could reach every action, with no stated register, limit or settings. As written, a builder's click could cost PBL SurePass money with no daily cap. Routing every builder call to the practice register — regardless of settings — closes this door and makes real-number tests only possible with a service credential (brief section 5, step 6). New fixture `check-pan/not-set-up-builder.json`. |
+| 27 | Section 3 (`accept_kept_answer_days`) and section 4 (`check_id`) state explicitly that any caller's `FOUND`/`NOT_FOUND` answer on the same register for the same number may be reused, not only this caller's; per-caller fields (check records, `get-check`, `my-usage`, 60-second double-click) are listed as exceptions. The reused response's `check_id` is always this caller's new id, never another caller's. | The owner decided this on 2026-11-21 (STATUS.md): the registered name of a PAN is the same for everyone; paying SurePass twice for the same answer is waste. The contract did not state the rule — section 3's reuse text said "the same register already gave an answer" without naming whose. Making it explicit removes the ambiguity and, together with the per-caller exceptions, prevents cross-caller `check_id` leakage. |
