@@ -56,15 +56,50 @@ midnight in India can flip a date-sensitive test.
 ### D-05 — Row lock for daily-limit enforcement
 
 **Decision:** Daily limits are enforced with an `INSERT … ON CONFLICT DO NOTHING`
-followed by `SELECT … FOR UPDATE` on the `daily_counts` table, inside one database
-transaction. The insert ensures the row exists for the first request of the day; the
-lock ensures two simultaneous requests at the limit cannot both pass.
+followed by `SELECT … FOR UPDATE` on the `daily_counts` table, inside one **short**
+database transaction. In pseudocode:
+
+```
+BEGIN
+  INSERT INTO daily_counts (caller, register, india_date, count)
+  VALUES ($caller, $register, $date_india, 0)
+  ON CONFLICT (caller, register, india_date) DO NOTHING;
+
+  SELECT count, daily_limit
+  FROM daily_counts
+  WHERE caller = $caller AND register = $register AND india_date = $date_india
+  FOR UPDATE;
+
+  -- if count >= daily_limit -> return LIMIT_REACHED here (ROLLBACK, no provider call)
+
+  UPDATE daily_counts SET count = count + 1
+  WHERE caller = $caller AND register = $register AND india_date = $date_india;
+COMMIT
+```
+
+The insert ensures the row exists for the first request of the day; the lock ensures
+two simultaneous requests at the limit cannot both pass. **The transaction holds the
+lock only to read the count, decide, and increment — then it commits and releases.
+The SurePass call runs AFTER this transaction has committed, never while the lock is
+held.**
+
+**Platform limits this design depends on** (Isomorph; see brief §10 lessons):
+
+- An action may run up to **5 minutes**. The service's total response time (claim +
+  limit check + SurePass call + result write) is well under this.
+- A single statement may run up to **30 seconds**. SurePass's 20-second timeout is
+  inside this bound.
+- A lock wait is given up after **5 seconds**. If the count lock were held across a
+  20-second SurePass call, the caller's next concurrent call would wait 5 s and fail
+  with a lock-wait error rather than return a proper outcome. Hence the "short
+  transaction" rule above.
 
 **Reason:** Coding standards (section 4) require database-level enforcement. Without
 the insert-on-conflict, `FOR UPDATE` on a non-existent row locks nothing, so two
 concurrent first-of-day requests could both see "no row" and both pass. Isomorph
 lesson 3 (brief, section 10): `.forUpdate()` inside `ctx.transaction` needs an `UPDATE`
-row-level policy on the table.
+row-level policy on the table. Holding the lock across the SurePass call would hit
+Isomorph's 5-second lock-wait and 30-second statement limits.
 
 ---
 
