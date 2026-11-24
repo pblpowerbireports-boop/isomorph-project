@@ -152,6 +152,7 @@ register call is an outcome, not an HTTP error.
   },
   "register_reference": "SurePass's own reference for this answer (its client_id), or null",
   "register_time": "2026-11-20T10:15:00Z",
+  "answered_at": "2026-11-20T10:15:00Z",
   "checked_at": "2026-11-20T10:15:01Z",
   "reused": false,
   "charged": true
@@ -173,11 +174,21 @@ register call is an outcome, not an HTTP error.
 - `answer`: the check's answer when the outcome is `FOUND`, otherwise `null`. Shape
   depends on `kind` (see section 5).
 - `register_reference`: the register's own reference for this answer (SurePass's
-  `client_id`), or `null` if none was returned or the check was reused/replayed.
+  `client_id`), or `null` if the register returned none. **On a reused answer this is
+  the original register's reference, unchanged — never `null` simply because the
+  answer was reused.** On a replay it is the stored reference from the first answer.
 - `register_time`: the time the register produced the answer, as an ISO 8601 string in
   UTC, or `null` when the register did not provide one (the practice register always
-  returns `null` here; SurePass's HTTP Date header is used when present).
-- `checked_at`: the time the service recorded this check, ISO 8601 in UTC.
+  returns `null` here; SurePass's HTTP Date header is used when present). **On a
+  reused answer this is the original register's time, unchanged.**
+- `answered_at`: the time the register gave this answer, ISO 8601 in UTC. For a new
+  check this equals `checked_at`. **For a reused answer this is the original check's
+  time — it tells the caller how old the answer really is, so the caller can decide
+  whether to ask again.** For `NO_ANSWER`, `NOT_SET_UP`, `LIMIT_REACHED` and
+  `REFUSED_INPUT` outcomes this equals `checked_at` (no earlier answer exists).
+- `checked_at`: the time the service accepted and recorded **this** check, ISO 8601
+  in UTC. On a reused answer, `checked_at` is "today" while `answered_at` is the
+  original day.
 - `reused`: `true` when an earlier answer for the same number was returned
   (`accept_kept_answer_days` or the 60-second double-click rule), without a new
   register call.
@@ -186,6 +197,13 @@ register call is an outcome, not an HTTP error.
   `REFUSED_INPUT` outcome from SurePass is still charged if SurePass was actually
   called. `LIMIT_REACHED`, `NOT_SET_UP`, replays and reuses are never charged.
   Practice-register calls count against the practice daily limit but are never charged.
+
+**On the `check_id` of a reused answer.** A reused answer always carries a **new**
+`check_id` (this caller's new check record), not the original's — because the
+original check may belong to another caller and other callers' `check_id`s are never
+exposed (per the owner's decision on who may reuse what, sections 3 and 4). The
+service's internal call log records which earlier check was reused so the paid call
+remains traceable end-to-end.
 
 ---
 
@@ -403,14 +421,17 @@ Every call that reaches an action is recorded:
 | `reused` | whether an earlier answer was returned |
 | `replayed` | whether the request_id was seen before |
 | `check_id` | UUID of the original check record (same value for a replay) |
-| register reference | SurePass's reference, or null |
+| register reference | SurePass's reference for the register's answer (on a reused answer: the **original** reference; on a replay: unchanged from the first answer) |
+| `register_time` | when the register gave the answer (original time on reused/replayed) |
+| `answered_at` | when the register first gave this answer (equals `checked_at` for a new check; the original check's time on reused) |
+| reused_from_check_id | internal: on a reused answer, the `check_id` of the original paid check (never exposed to callers) |
 | time taken | milliseconds |
-| `checked_at` | ISO 8601 UTC |
+| `checked_at` | ISO 8601 UTC — when **this** request was accepted |
 
 **Replays are logged.** When a request is a replay, a new call-log entry is written with
-the original `check_id`, `replayed: true`, `register_reference: null`, and
-`charged: false`. No new check record is created; "nothing new written" in section 6
-refers to no new check record, no new provider call, and no new charge.
+the original `check_id`, `replayed: true`, `register_reference` unchanged from the first
+answer, and `charged: false`. No new check record is created; "nothing new written" in
+section 6 refers to no new check record, no new provider call, and no new charge.
 
 **Two paths for input-validation refusals:**
 
@@ -612,3 +633,4 @@ Every change is listed here for the owner's approval.
 | 22 | Clarified section 5 "never kept": means never eligible for kept-answer reuse, not that the record is not stored; added retrievability rule to section 2a | Non-answer outcomes are recorded and retrievable via get-check; they are simply not candidates for accept_kept_answer_days or the 60-second rule. Added get-check/no-answer.json fixture. |
 | 23 | Corrected the stale-claim takeover rule in section 7.2: wait extended from 10 s to 25 s; added claim-token so a late provider reply cannot overwrite a newer claim; added caller-timing note telling callers to show a loading indicator | A SurePass call can take 20 seconds and `ZZZZT9004Z` waits 18 seconds on purpose, so a 10-second wait could declare a live request stale and lead to two paid calls writing the same row. 25 s is longer than SurePass's 20 s timeout plus the result write, so a live request cannot be taken over; the claim token stops a late reply from overwriting a newer claim. Added `check-pan/reused-after-wait.json` fixture. |
 | 24 | Corrected the slow practice number: `ZZZZT9004Z` now returns `FOUND` after 18 seconds (with `registered_name: "PRACTICE SLOW ANSWER LIMITED"`, `holder_type: null`), not `NO_ANSWER`. Added `ZZZZT9005Z` which delays past the 20-second timeout and returns `NO_ANSWER`. | Brief 4.7 asks for "a slow answer just inside the time limit" — a slow answer that arrives and is still taken. `ZZZZT9004Z` as `NO_ANSWER` tested nothing useful for the slow case. The pair proves both the slow-kept case and the timeout-cut-off case, without paying SurePass. Fixtures added. |
+| 25 | Added `answered_at` to every check response; on a reused answer `register_reference` and `register_time` are the **original** register's values, unchanged; the response's `check_id` on a reused answer is this caller's new id, not the original's. | Under `accept_kept_answer_days` an answer may be up to 366 days old. The old contract gave the caller today's `checked_at`, `register_reference: null`, and `register_time: null` — the CRM would then see the reused answer as "today's" and never re-check it; PBL also could not trace which paid call the answer came from. `answered_at` tells the caller the real age; keeping the original register reference and time preserves the audit trail. A new `check_id` protects per-caller isolation (owner's C5 decision). Every check-response fixture updated. |

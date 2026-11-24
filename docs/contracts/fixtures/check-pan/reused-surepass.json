@@ -1,0 +1,30 @@
+{
+  "_about": "check-pan on the surepass register: a FOUND answer from 300 days ago is reused under accept_kept_answer_days: 366. Nothing new is paid. The response carries the ORIGINAL SurePass reference and register_time, unchanged — so the caller sees the real age of the answer and PBL can trace the original paid call. checked_at is today; answered_at is 300 days ago. check_id is a NEW id for this caller's new check record (the original may belong to another caller; per owner's C5 decision, other callers' check_ids are never exposed).",
+  "request": {
+    "request_id": "crm-pan-reuse-sp-001",
+    "pan": "AAACP7361R",
+    "register": "surepass",
+    "accept_kept_answer_days": 366
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000043",
+    "request_id": "crm-pan-reuse-sp-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "AAACP7361R",
+    "register": "SUREPASS",
+    "outcome": "FOUND",
+    "reason": null,
+    "answer": {
+      "registered_name": "PRACTICE CRANES PRIVATE LIMITED",
+      "holder_type": "COMPANY"
+    },
+    "register_reference": "SP-ORIGINAL-ANSWER-REFERENCE",
+    "register_time": "2026-01-24T09:00:00Z",
+    "answered_at": "2026-01-24T09:00:00Z",
+    "checked_at": "2026-11-20T10:15:00Z",
+    "reused": true,
+    "charged": false
+  }
+}

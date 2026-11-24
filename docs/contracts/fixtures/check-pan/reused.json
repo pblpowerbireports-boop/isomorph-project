@@ -21,7 +21,8 @@
       "holder_type": "COMPANY"
     },
     "register_reference": null,
-    "register_time": null,
+    "register_time": "2026-11-13T09:00:00Z",
+    "answered_at": "2026-11-13T09:00:00Z",
     "checked_at": "2026-11-20T10:15:00Z",
     "reused": true,
     "charged": false

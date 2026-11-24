@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan on the surepass register: same request_id with the same request sent a second time. The first answer is returned with replayed: true; register_reference is null, charged: false. No new check record is created, but a new call-log entry is recorded with replayed: true.",
+  "_about": "check-pan on the surepass register: same request_id with the same request sent a second time. The first answer is returned with replayed: true; register_reference and register_time carry the original SurePass values (unchanged); charged: false (nothing new paid). No new check record is created, but a new call-log entry is recorded with replayed: true.",
   "first_request": {
     "request_id": "crm-pan-sp-replay-001",
     "pan": "AAACP7361R",
@@ -26,8 +26,9 @@
       "registered_name": "PRACTICE CRANES PRIVATE LIMITED",
       "holder_type": "COMPANY"
     },
-    "register_reference": null,
+    "register_reference": "SP-00000000000000000031",
     "register_time": "2026-11-20T10:15:00Z",
+    "answered_at": "2026-11-20T10:15:00Z",
     "checked_at": "2026-11-20T10:16:00Z",
     "reused": false,
     "charged": false
