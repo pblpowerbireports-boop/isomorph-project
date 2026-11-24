@@ -1,0 +1,26 @@
+{
+  "_about": "check-pan: NO_ANSWER caused by the service's 20-second timeout cutting off a practice-register call that would answer later (ZZZZT9005Z). Proves the timeout works end-to-end on the practice register, without any SurePass call. See contract §8.",
+  "request": {
+    "request_id": "crm-pan-timeout-001",
+    "pan": "ZZZZT9005Z",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000042",
+    "request_id": "crm-pan-timeout-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "ZZZZT9005Z",
+    "register": "PRACTICE",
+    "outcome": "NO_ANSWER",
+    "reason": "The practice register did not answer. Check again later.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "checked_at": "2026-11-20T10:15:20Z",
+    "reused": false,
+    "charged": false
+  }
+}
