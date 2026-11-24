@@ -2,7 +2,7 @@
 
 Version `1.0`. Approved at: *(awaiting owner approval)*.
 
-Changes from the brief's draft (section 4) are listed in section 9.
+Changes from the brief's draft (section 4) are listed in section 10.
 
 ---
 
@@ -48,7 +48,7 @@ Response (200): the check record, in the same shape as section 4. Every complete
 record is retrievable, whatever its outcome — `NO_ANSWER`, `NOT_SET_UP`, `LIMIT_REACHED`
 and `REFUSED_INPUT` checks are stored and can be looked up. `replayed` reflects whether
 the original check was itself a replay, as recorded — it is not reset to `false` by the
-lookup. An `IN_PROGRESS` placeholder (section 7.0) is not a completed check and is never
+lookup. An `IN_PROGRESS` placeholder (section 7.2) is not a completed check and is never
 returned.
 
 Response (404): error body (section 6, error response body).
@@ -108,7 +108,7 @@ Response (200):
 - `gstin` (required for `check-gstin`): the GSTIN to check. Upper case, no spaces.
   Format: exactly 15 characters. Characters 3–12 must be a valid PAN (by the PAN format
   above). Character 15 must be the check character computed from characters 1–14 (the
-  GST network's check-character algorithm; see section 7.2). Any value that fails is
+  GST network's check-character algorithm; see section 8 and `accounts/identity_checks.py`). Any value that fails is
   refused with 400 before anything is paid for.
 - `register` (required, one of `"surepass"` or `"practice"`, lowercase): which register
   to use. A caller may use only the registers its settings allow (section 6). The
@@ -304,9 +304,9 @@ the PAN asked is `NO_ANSWER`, never `FOUND`. SurePass must not cross numbers.
 **Same request again.** The same `request_id` with the same request (same kind, number,
 register and `accept_kept_answer_days`) returns the first answer with `replayed: true`,
 nothing new paid or written (no new check record, no new provider call, no new charge).
-The replay itself is recorded in the call log (section 7.3). To check again after
+The replay itself is recorded in the call log (section 7.4). To check again after
 `NO_ANSWER`, the caller sends a new `request_id`. Two identical requests at the same
-moment produce at most one provider call and one replayed response (see section 7.0 for
+moment produce at most one provider call and one replayed response (see section 7.2 for
 the narrow crash exception).
 
 **Error response body.** Every refusal from an action (400, 403, 404, 409) returns JSON:
@@ -335,7 +335,7 @@ One settings record per credential (`service:<clientId>`):
   Asia/Kolkata). `null` means no limit.
 - `daily_limit_practice`: maximum practice checks per India day. `null` means no limit.
 
-### 7.0 Request-slot claim (concurrent safety)
+### 7.2 Request-slot claim (concurrent safety)
 
 Before calling the provider or reading any kept answer, the service claims a request
 slot in two steps:
@@ -363,17 +363,17 @@ call. In that window, a provider call may occur without a durable record; this
 unavoidable uncertainty is acknowledged here. If SurePass offers no idempotency key,
 the caller should send a new `request_id` to check again.
 
-### 7.2 Daily limits
+### 7.3 Daily limits
 
 - Counts **new invocations** per caller, per register, per India day — calls that reached
   the register, excluding replays, reuses, and calls refused by `LIMIT_REACHED`.
 - Two checks arriving at the limit simultaneously: exactly one passes, the other gets
-  `LIMIT_REACHED`. This is enforced by a database row lock (`FOR UPDATE` inside a
-  transaction), applied after an insert-on-conflict ensures the row exists:
-  `INSERT INTO daily_counts … ON CONFLICT DO NOTHING`, then `SELECT … FOR UPDATE`.
+  `LIMIT_REACHED`. The service holds a short database lock only to read and increment
+  the day's count, releases it, and only then calls SurePass. The lock is never held
+  across a provider call. `docs/DESIGN.md` D-05 gives the exact implementation.
 - The practice register has a daily limit too, so the limit can be tested without paying.
 
-### 7.3 The call log
+### 7.4 The call log
 
 Every call that reaches an action is recorded:
 
@@ -413,7 +413,7 @@ refers to no new check record, no new provider call, and no new charge.
 
 No number, name or reply body appears in any log line visible outside the action.
 
-### 7.4 The builders' page
+### 7.5 The builders' page
 
 For builders only (not callers):
 
@@ -422,7 +422,7 @@ For builders only (not callers):
 - Callers' settings. Changes are made only by a builder; every change is kept (who made
   it, when, and what it changed from and to).
 
-### 7.5 Data retention
+### 7.6 Data retention
 
 How long check records and call log entries are kept is a PBL policy not yet decided.
 No deletion is built in version 1. This is an open question (see `docs/OPEN_ITEMS.md`).
@@ -585,14 +585,14 @@ Every change is listed here for the owner's approval.
 | 9 | Added: practice numbers for all missing outcomes, with their check characters | The brief says to add these (section 4.7) but does not specify the numbers. They are defined in section 8 of this contract with their computed check characters shown. |
 | 10 | Clarified: `get-check` takes either `check_id` or `request_id`, not both; added full request and response shapes for `get-check` and `my-usage` (section 2a) | The brief's section 4.2 says "by `check_id` or `request_id`" but the request shape in section 4.3 does not cover `get-check`, and `my-usage`'s response shape is not defined. Section 2a fills both gaps. |
 | 11 | Added: error response body format for action-level refusals (400, 403, 404, 409) in section 6 | The brief specifies status codes for refusals but not the response body. A defined shape is needed for fixtures, tests and callers. |
-| 12 | Added: request-slot claim protocol (section 7.0) for concurrent-safety guarantee | The brief states two identical concurrent requests give one paid call and one replay. Without an atomic request-claim step, both requests could reach the provider before either inserts a row. |
-| 13 | Clarified: `charged` = paid SurePass call; practice daily counts use a separate invocation count (sections 4 and 7.2) | The brief's actions table says "Charged? When SurePass is called". Practice checks cost nothing but do count against a daily limit. Using `charged` for both would contradict every practice fixture. |
+| 12 | Added: request-slot claim protocol (section 7.2) for concurrent-safety guarantee | The brief states two identical concurrent requests give one paid call and one replay. Without an atomic request-claim step, both requests could reach the provider before either inserts a row. |
+| 13 | Clarified: `charged` = paid SurePass call; practice daily counts use a separate invocation count (sections 4 and 7.3) | The brief's actions table says "Charged? When SurePass is called". Practice checks cost nothing but do count against a daily limit. Using `charged` for both would contradict every practice fixture. |
 | 14 | Added: `pan`/`gstin` explicitly forbidden in the wrong action (section 3) | Both fields are listed in the contract, so the "unknown field" rule would not catch them. Explicit rejection prevents ambiguous behaviour and cross-action identity of replays. |
 | 15 | Added: catch-all for unrecognised SurePass HTTP statuses (section 9) | The table was exhaustive for expected codes but left no rule for 3xx, 402, 405, 408, 409 etc. Any such response is NO_ANSWER. |
-| 16 | Softened concurrent-request guarantee in sections 6 and 7.0 to acknowledge the narrow crash window | In a crash scenario (provider call succeeds, result transaction aborts), a paid call may occur without a durable record. The original claim was unconditional; this correction is accurate and does not change the protocol's behaviour outside that window. |
-| 17 | Clarified replay logging in section 7.3: replays are recorded in the call log | "Nothing new written" means no new check record and no new charge; the replay itself is still logged. This matches the assessor requirement (brief section 6, check 14) and the section 7.3 table. |
-| 18 | Added two-path rule for input-validation refusals (section 7.3) | Isomorph's schema check rejects malformed external calls before the action runs (not logged); the action's own validation rejects all callers (logged with REFUSED_INPUT). Without this distinction, implementers might not log builder-call refusals. |
+| 16 | Softened concurrent-request guarantee in sections 6 and 7.2 to acknowledge the narrow crash window | In a crash scenario (provider call succeeds, result transaction aborts), a paid call may occur without a durable record. The original claim was unconditional; this correction is accurate and does not change the protocol's behaviour outside that window. |
+| 17 | Clarified replay logging in section 7.4: replays are recorded in the call log | "Nothing new written" means no new check record and no new charge; the replay itself is still logged. This matches the assessor requirement (brief section 6, check 14) and the section 7.4 table. |
+| 18 | Added two-path rule for input-validation refusals (section 7.4): Isomorph's schema check rejects malformed external calls before the action runs (not logged); the action's own validation rejects all callers and logs an action-refusal entry with `outcome: null` (not `REFUSED_INPUT`, which is reserved for register refusals). | Without this distinction, implementers might not log builder-call refusals; without the `outcome: null` rule, action-level rejections would be mis-tagged as register refusals. One combined rule instead of change 18 + change 21 reversing each other. |
 | 19 | Added reply-table precedence note and 3xx rule (section 9) | Status-code rows take precedence over the JSON/non-JSON catch-all; 3xx is not followed. |
-| 20 | Added IN_PROGRESS placeholder state machine to section 7.0 | The two-transaction protocol left no rule for a concurrent request that arrives while the first is still running. The in-progress state, bounded poll, and stale-claim recovery make the behaviour fully defined. |
-| 21 | Corrected action-level refusal log entry in section 7.3: outcome null, not REFUSED_INPUT | REFUSED_INPUT is defined as a register refusal; action-level validation rejections never reach a register. Logged as a separate action-refusal entry with nullable request fields. |
+| 20 | Added IN_PROGRESS placeholder state machine to section 7.2 | The two-transaction protocol left no rule for a concurrent request that arrives while the first is still running. The in-progress state, bounded poll, and stale-claim recovery make the behaviour fully defined. |
+| 21 | Folded into change 18 (action-refusal entries carry `outcome: null`, not `REFUSED_INPUT`) | Earlier drafts listed this as a separate correction; it is the same rule as change 18 and is written once there. |
 | 22 | Clarified section 5 "never kept": means never eligible for kept-answer reuse, not that the record is not stored; added retrievability rule to section 2a | Non-answer outcomes are recorded and retrievable via get-check; they are simply not candidates for accept_kept_answer_days or the 60-second rule. Added get-check/no-answer.json fixture. |

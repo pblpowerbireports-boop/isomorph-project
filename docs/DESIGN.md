@@ -83,7 +83,7 @@ the row with the final outcome. `get-check` never returns an `IN_PROGRESS` row.
 *provider call*, and a two-transaction protocol without an in-progress state leaves no
 defined behaviour when the second request arrives while the first is still running.
 Coding standards (section 4): "a unique constraint for 'one record per request id'";
-contract section 7.0 defines the full state machine.
+contract section 7.2 defines the full state machine.
 
 ---
 
