@@ -72,16 +72,29 @@ row-level policy on the table.
 
 **Decision:** A unique constraint on `(caller, request_id)` in the `checks` table
 prevents two final rows. Before calling the provider, the service inserts a placeholder
-row with internal state `IN_PROGRESS` (committed immediately). If that insert conflicts:
+row with internal state `IN_PROGRESS` and a **claim token** (fresh UUID), committed
+immediately. If that insert conflicts:
 - with a finalised row → `replayed: true` (same request) or 409 (different request);
-- with an `IN_PROGRESS` row → poll up to 10 seconds for finalisation, then replay;
-  if still in-progress after 10 seconds (stale claim), overwrite and proceed as first.
-After the provider call (or any terminal path with no call), a second transaction updates
-the row with the final outcome. `get-check` never returns an `IN_PROGRESS` row.
+- with an `IN_PROGRESS` row → poll up to **25 seconds** for finalisation, then replay;
+  if still in-progress after 25 seconds (stale claim), overwrite the claim token with
+  a new one and proceed as the first request.
 
-**Reason:** The unique constraint alone prevents the second *insert* but not the second
-*provider call*, and a two-transaction protocol without an in-progress state leaves no
-defined behaviour when the second request arrives while the first is still running.
+After the provider call (or any terminal path with no call), a second transaction
+updates the row with the final outcome **only where the stored claim token still
+matches the request's own**. If the token has changed (the claim was taken over as
+stale), the update is refused; the original request then reads the row the new holder
+wrote and returns that answer with `replayed: true`. `get-check` never returns an
+`IN_PROGRESS` row.
+
+**Reason:** The unique constraint alone prevents the second *insert* but not the
+second *provider call*, and a two-transaction protocol without an in-progress state
+leaves no defined behaviour when the second request arrives while the first is still
+running. A 10-second wait is shorter than SurePass's 20-second timeout, so a live
+slow request could be declared stale and both requests would make a paid call; 25
+seconds > 20 s + result-write time, so a live request can never be taken over
+accidentally. The claim token stops a late terminal write from overwriting a newer
+claim's answer.
+
 Coding standards (section 4): "a unique constraint for 'one record per request id'";
 contract section 7.2 defines the full state machine.
 

@@ -342,26 +342,39 @@ slot in two steps:
 
 1. **Claim transaction.** Insert a placeholder check row (internal state `IN_PROGRESS`,
    not a contract outcome and never returned to callers) under the `(caller, request_id)`
-   unique constraint and commit immediately.
+   unique constraint and commit immediately. The claim carries a **claim token** (a
+   fresh UUID) stored on the row; every later write to this row from the request that
+   placed the claim names its own token.
    - If the insert **conflicts with a finalised row** (any terminal outcome): same request
      body → returns the existing answer with `replayed: true`; different request body →
      returns 409.
    - If the insert **conflicts with an `IN_PROGRESS` row** (the first request is still
-     running): the conflicting request polls for up to 10 seconds for the row to reach a
-     terminal outcome, then replays the finalised result. If the row is still `IN_PROGRESS`
-     after 10 seconds it is treated as stale; the conflicting request overwrites the claim
-     and proceeds as the first request.
+     running): the conflicting request polls for up to **25 seconds** for the row to
+     reach a terminal outcome, then replays the finalised result. If the row is still
+     `IN_PROGRESS` after 25 seconds it is treated as stale; the conflicting request
+     **writes a new claim token** onto the row and proceeds as the first request.
 
 2. **Result transaction.** After the provider call returns — or after any terminal path
    that does not call the provider (reuse, `LIMIT_REACHED`, `NOT_SET_UP`) — the action
-   updates the placeholder with the final outcome and commits.
+   updates the placeholder with the final outcome **only where the row still holds its
+   own token**. If the token has changed (the claim was taken over as stale), the write
+   is refused; the original request then reads the row the new holder wrote and returns
+   that answer with `replayed: true`. One terminal row wins; the other request still
+   returns a complete response.
 
 `get-check` never returns an `IN_PROGRESS` row; a placeholder is not a completed check
 record. Outside the narrow crash window (a provider call that succeeds but whose result
 transaction then aborts), two identical concurrent requests produce at most one provider
-call. In that window, a provider call may occur without a durable record; this
-unavoidable uncertainty is acknowledged here. If SurePass offers no idempotency key,
-the caller should send a new `request_id` to check again.
+call that is kept. In that window, a provider call may occur without a durable record;
+this unavoidable uncertainty is acknowledged here. If SurePass offers no idempotency
+key, the caller should send a new `request_id` to check again.
+
+**Timing.** A single check (including a `ZZZZT9004Z`-style 18-second slow answer) can
+take up to 20 seconds inside the action, plus at most a few seconds to write the result.
+A conflicting identical request can wait up to 25 seconds before taking over. Isomorph
+limits an action to 5 minutes, so the full response — answer or replay — always arrives
+within that bound. **Callers should show a loading indicator on their own screen while
+waiting:** a PAN check can take up to about 25 seconds.
 
 ### 7.3 Daily limits
 
@@ -596,3 +609,4 @@ Every change is listed here for the owner's approval.
 | 20 | Added IN_PROGRESS placeholder state machine to section 7.2 | The two-transaction protocol left no rule for a concurrent request that arrives while the first is still running. The in-progress state, bounded poll, and stale-claim recovery make the behaviour fully defined. |
 | 21 | Folded into change 18 (action-refusal entries carry `outcome: null`, not `REFUSED_INPUT`) | Earlier drafts listed this as a separate correction; it is the same rule as change 18 and is written once there. |
 | 22 | Clarified section 5 "never kept": means never eligible for kept-answer reuse, not that the record is not stored; added retrievability rule to section 2a | Non-answer outcomes are recorded and retrievable via get-check; they are simply not candidates for accept_kept_answer_days or the 60-second rule. Added get-check/no-answer.json fixture. |
+| 23 | Corrected the stale-claim takeover rule in section 7.2: wait extended from 10 s to 25 s; added claim-token so a late provider reply cannot overwrite a newer claim; added caller-timing note telling callers to show a loading indicator | A SurePass call can take 20 seconds and `ZZZZT9004Z` waits 18 seconds on purpose, so a 10-second wait could declare a live request stale and lead to two paid calls writing the same row. 25 s is longer than SurePass's 20 s timeout plus the result write, so a live request cannot be taken over; the claim token stops a late reply from overwriting a newer claim. Added `check-pan/reused-after-wait.json` fixture. |
