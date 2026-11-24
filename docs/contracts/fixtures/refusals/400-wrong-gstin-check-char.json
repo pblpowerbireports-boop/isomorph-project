@@ -1,5 +1,5 @@
 {
-  "_about": "400: GSTIN check character does not fit. For external callers Isomorph's schema check rejects this before the action runs — nothing is logged. For builder calls the action's own validation catches it and logs a REFUSED_INPUT entry.",
+  "_about": "400: GSTIN check character does not fit. A JSON Schema can test shape (15 characters, correct character set) but cannot compute a check character — that needs code. So for every caller (external or builder) the request reaches the action and the action's own validation refuses it with 400 and logs an action-refusal entry with outcome: null (see contract §7.4, two-path rule).",
   "request": {
     "request_id": "crm-bad-002a",
     "gstin": "24AAACP7361R1ZX",

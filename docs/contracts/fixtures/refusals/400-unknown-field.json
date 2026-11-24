@@ -1,5 +1,5 @@
 {
-  "_about": "400: unknown field in request body. For external callers Isomorph's schema check rejects this before the action runs — nothing is logged. For builder calls the action's own validation catches it and logs a REFUSED_INPUT entry.",
+  "_about": "400: unknown field in request body. For external callers Isomorph's schema check rejects this before the action runs — nothing is logged. For builder calls the action's own validation catches it and logs an action-refusal entry with outcome: null (see contract §7.4, two-path rule).",
   "request": {
     "request_id": "crm-bad-003a",
     "pan": "AAACP7361R",

@@ -1,5 +1,5 @@
 {
-  "_about": "400: accept_kept_answer_days is a string instead of an integer. For external callers Isomorph's schema check rejects this before the action runs — nothing is logged. For builder calls the action's own validation catches it and logs a REFUSED_INPUT entry.",
+  "_about": "400: accept_kept_answer_days is a string instead of an integer. For external callers Isomorph's schema check rejects this before the action runs — nothing is logged. For builder calls the action's own validation catches it and logs an action-refusal entry with outcome: null (see contract §7.4, two-path rule).",
   "request": {
     "request_id": "crm-bad-004a",
     "pan": "AAACP7361R",
