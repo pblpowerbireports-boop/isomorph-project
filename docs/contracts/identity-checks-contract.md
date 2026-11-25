@@ -471,24 +471,27 @@ offers no idempotency key, the caller should send a new `request_id` to check ag
 
 ### 7.4 The call log
 
-Every call that reaches an action is recorded:
+Every call that reaches an action is recorded in the call log — one row per
+invocation attempt. The call log is a separate store from check records (see
+`docs/DESIGN.md` D-13); it has **no** unique constraint on `(caller, request_id)`, so
+it can hold replays, action refusals, builder calls and successful calls side by side.
 
 | Field | Description |
 | --- | --- |
-| caller | `service:<clientId>` |
+| caller | `service:<clientId>` for an outside service caller, or `builder:<email>` for a builder call from inside the app (§1) |
 | action | e.g. `check-pan` |
-| `request_id` | as sent |
-| kind | `PAN`, `GSTIN` or `GSTINS_BY_PAN` |
-| number | the number checked (stored; masked to last 4 characters in the page) |
-| register | `SUREPASS` or `PRACTICE` |
-| outcome | the outcome code |
-| `charged` | whether a paid SurePass call was made (never true for practice) |
+| `request_id` | as sent, or `null` for a refusal where the field was absent or invalid |
+| kind | `PAN`, `GSTIN` or `GSTINS_BY_PAN`, or `null` for a refusal where the field was absent or invalid |
+| number | the number checked (stored; masked to last 4 characters on the builders' page), or `null` for a refusal where the field was absent or invalid |
+| register | `SUREPASS` or `PRACTICE`, or `null` for a refusal where the field was absent or invalid |
+| outcome | the outcome code, or `null` for an action-refusal entry (see the two-path rule below) |
+| `charged` | whether a paid SurePass call was made (never true for practice; false for refusals, replays, reuses) |
 | `reused` | whether an earlier answer was returned |
-| `replayed` | whether the request_id was seen before |
-| `check_id` | UUID of the original check record (same value for a replay) |
+| `replayed` | whether the `request_id` was seen before |
+| `check_id` | UUID of the check record this entry refers to (same value for a replay; `null` for an action-refusal entry) |
 | register reference | SurePass's reference for the register's answer (on a reused answer: the **original** reference; on a replay: unchanged from the first answer) |
-| `register_time` | when the register gave the answer (original time on reused/replayed) |
-| `answered_at` | when the register first gave this answer (equals `checked_at` for a new check; the original check's time on reused) |
+| `register_time` | when the register gave the answer (original time on reused/replayed; `null` for practice; `null` for a refusal or non-answer outcome) |
+| `answered_at` | when the register first gave this answer (equals `checked_at` for a new check or non-answer; the original check's time on reused) |
 | reused_from_check_id | internal: on a reused answer, the `check_id` of the original paid check (never exposed to callers) |
 | time taken | milliseconds |
 | `checked_at` | ISO 8601 UTC — when **this** request was accepted |

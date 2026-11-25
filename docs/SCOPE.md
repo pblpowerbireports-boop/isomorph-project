@@ -43,7 +43,8 @@ and error. No field not in the contract crosses the action's response.
 
 | Table | Holds | Notes |
 | --- | --- | --- |
-| `checks` | One row per check: caller, action, request_id, kind, number, register, outcome, charged, reused, replayed, check_id, register_reference, time_taken_ms, checked_at | The call log and the answer store. Numbers stored; masked to last 4 characters in the page |
+| `checks` | One row per completed check record: caller, action, request_id, kind, number, register, outcome, charged, reused, replayed, check_id, register_reference, register_time, answered_at, checked_at, claim_token, state | The answer store. Unique on `(caller, request_id)`. Numbers stored; masked to last 4 characters in the page. Non-answer outcomes and `IN_PROGRESS` placeholders live here too; a reused answer carries a new `check_id` for this caller, never the original's. |
+| `call_log` | One row per invocation attempt: caller, action, request_id (may be null for malformed), kind, number, register, outcome (may be null for action refusals), charged, reused, replayed, check_id (nullable FK into `checks`), register_reference, time_taken_ms, checked_at | The audit trail. **No** unique constraint on `(caller, request_id)` — it holds replays, action refusals (`outcome: null`), builder calls and successful calls side by side. `caller` is either `service:<clientId>` or `builder:<email>`. |
 | `check_answers` | The normalized answer (PAN, GSTIN or GSTINs list) for FOUND and NOT_FOUND checks | Linked to `checks`. Never stores the raw provider reply |
 | `caller_settings` | One row per credential: name, registers_allowed, daily_limit_surepass, daily_limit_practice | Changed only by a builder; every change kept in `caller_settings_history` |
 | `caller_settings_history` | Append-only log of every change to `caller_settings` | Who changed it, when, from what to what |

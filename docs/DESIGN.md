@@ -226,6 +226,36 @@ the contract's guarantee that every register failure becomes a 200 check outcome
 
 ---
 
+### D-13 — `call_log` is a separate table from `checks`
+
+**Decision.** The data model has two tables:
+
+- `checks`: one row per **completed** check record. Unique on `(caller, request_id)`
+  (via D-06). Holds `IN_PROGRESS` placeholders too (same uniqueness). Carries the
+  answer, the register evidence, the claim token, and the state.
+- `call_log`: one row per **invocation attempt**. **No** unique constraint on
+  `(caller, request_id)`. Holds replays (multiple rows per `request_id`), action
+  refusals (`outcome: null`, no corresponding `checks` row), builder calls, and
+  successful calls side by side. `caller` is `service:<clientId>` or
+  `builder:<email>`. Field list in contract §7.4.
+
+Every call that reaches an action writes one `call_log` row. A call that updates or
+replays a `checks` row also sets `call_log.check_id` to the corresponding row's id;
+an action-refusal row leaves `check_id` null.
+
+**Reason.** Contract §7.4 requires logging **every** call — including replays and
+action-level refusals — but `checks` holds only completed check records and its
+`(caller, request_id)` unique constraint (D-06) rules out a second row for the same
+request. Attempting to carry both roles in one table forces either a partial unique
+index (hard to read, easy to get wrong) or an extra `kind_of_entry` discriminator
+column. Two tables, each with one job, is the clearer model: `checks` protects
+idempotency; `call_log` carries the audit trail.
+
+Isomorph row-level security on both tables is as the isomorph skill requires. The
+page masks numbers from `call_log` the same way it masks numbers from `checks`.
+
+---
+
 ## Open questions
 
 See `docs/OPEN_ITEMS.md`. The following questions are outstanding as of package 01:
