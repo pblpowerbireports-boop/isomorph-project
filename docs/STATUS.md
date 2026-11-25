@@ -2,34 +2,37 @@
 
 Where the work stands and what comes next. Updated at every step of every package.
 
-Updated: 2026-11-25, package 01 Codex round 4 corrections applied; round 5 ready to run.
+Updated: 2026-11-25, package 01 Codex round 5 corrections applied; round 6 ready to run.
 
 ## Where it stands
 
-Package 01 **returned by owner's audit** (21 November 2026): 8 items decided, Phase C fixes applied, Codex
-**round 4** run (2026-11-25, commit `06ba78d`): `CORRECTION_REQUIRED` with 6 material and 1 advisory
-findings (R4.1..R4.7), each decided and committed (`44956c2`, `735c3bc`, `57f9e45`, `2eb0bf1`, `e1ca5ec`,
-`0531c19`, `cc529c8`). Phase E fixes applied in 5 grouped commits (`2b64a28`, `f03e745`, `130ea45`,
-`afa1f38`, `23e6580`) plus `§10` change entries.
+Codex **round 5** (2026-11-25, commit `19c8f5f`) returned `CORRECTION_REQUIRED` with 7 material findings
+(R5.1..R5.7). Each decided and committed (`0051275`, `1856ddf`, `f1fa5ea`, `a5334e0`, `9cd6936`,
+`cb37432`; R5.7 fixed inside scaffold commit `2757d72`). Phase F fixes applied in 3 grouped commits
+(`bebd1b8`, `a9d4bc9`, `58d3e06`) plus §10 change entries 36–41.
 
-Fixture count: 40 (added `no-answer-token-lost.json` for R4.2; `reused-after-wait.json` reworked to share
-request_id with `found-slow.json` per R4.3). All fixtures parse as valid JSON.
+Key design refinements in round 5: stale-claim takeover is now an atomic CAS (R5.1); each timing step
+has a hard numerical bound totalling 30 s honest-path max, with takeover wait at 45 s (R5.2); token-loss
+NO_ANSWER is atomically finalised so the returned `check_id` is durable (R5.3); `answered_at ≥
+checked_at` for new checks and the slow fixtures show the real 18-second gap (R5.4); 409 refusals are
+logged (R5.6).
 
-**Codex round 5** is next, with its focus the Round 4 findings and their fixes (what the owner's new rule
-requires after any material fix).
+Fixture count: 40 (unchanged from round 5). All parse as valid JSON.
+
+**Codex round 6** is next, focused on the Round 5 fixes.
 
 ## Current package
 
-Package 01, the contract, scope and design. Status: Codex round 5 ready to run on branch
+Package 01, the contract, scope and design. Status: Codex round 6 ready to run on branch
 `pkg/01-contract-scope-design`.
 
 ## Next
 
-- Build the round-5 packet: `node scripts/review/build-packet.mjs --package 01-contract-scope-design --round 5 --base 5e4566c`.
+- Build the round-6 packet: `node scripts/review/build-packet.mjs --package 01-contract-scope-design --round 6 --base 5e4566c`.
   The builder (Naidu) runs Codex with the printed command.
-- Record the result with `node scripts/review/check-result.mjs --package 01-contract-scope-design --round 5`;
+- Record the result with `node scripts/review/check-result.mjs --package 01-contract-scope-design --round 6`;
   put each finding in the package record.
-- If round 5 finds material or blocking: fix in new commits and run round 6. Up to round 9 the builder
+- If round 6 finds material or blocking: fix in new commits and run round 7. Up to round 9 the builder
   decides; beyond round 9 only on the owner's permission per round.
 - When ACCEPTED (or each remaining finding decided with a reason): builder rewrites "Builder's own checks"
   in their own words (A-L4).
