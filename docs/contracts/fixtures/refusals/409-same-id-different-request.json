@@ -1,5 +1,5 @@
 {
-  "_about": "409: same request_id reused with a different PAN. Nothing new is logged or charged.",
+  "_about": "409: same request_id reused with a different PAN. Nothing new is charged, no new check record is created, and the existing check row is not changed. One NEW call_log row IS written (§7.4 two-path rule): `caller` as sent, `action: check-pan`, `request_id: crm-dup-001`, `kind: PAN`, `number: ZZZZT9001Z` (as sent in the second request, masked on the page), `register: PRACTICE`, `outcome: null` (no register was reached), `charged: false`, `reused: false`, `replayed: false`, `check_id` pointing to the existing finalised check (we found the mismatch by looking it up), `register_reference: null`, `register_time: null`, `answered_at = checked_at`. A 409 is an action refusal, not a replay — it never returns the original answer.",
   "first_request": {
     "request_id": "crm-dup-001",
     "pan": "AAACP7361R",

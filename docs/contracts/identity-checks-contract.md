@@ -526,6 +526,13 @@ section 6 refers to no new check record, no new provider call, and no new charge
   if absent or invalid). These entries do not create a check record and are not
   retrievable via `get-check`.
 
+**409 refusals (same `request_id`, different request body) are also logged.** The
+mismatch is detected inside the action (by looking up the existing finalised check
+row). A **new `call_log` row** is written with `outcome: null`, `charged: false`,
+`reused: false`, `replayed: false`, `check_id` pointing to the existing finalised
+check, and the received request fields (`kind`, `number`, `register`) as sent. A 409
+is an action refusal, not a replay — it never returns the original answer.
+
 No number, name or reply body appears in any log line visible outside the action.
 
 ### 7.5 The builders' page

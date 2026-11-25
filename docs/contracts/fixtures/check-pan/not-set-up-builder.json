@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan called from inside the app by a builder, asking for the surepass register. Per contract §1, every builder call is routed to the practice register regardless of settings; a request for surepass returns NOT_SET_UP with no SurePass call made. The log entry carries caller: builder:<email>.",
+  "_about": "check-pan called from inside the app by a builder, asking for the surepass register. Per contract §1, builders may call the actions with `register: practice` only; a request naming `surepass` is refused before any register call with NOT_SET_UP. No caller-settings record changes this. The call_log entry carries `caller: builder:<email>` (§7.4, R4.6 fix).",
   "request": {
     "request_id": "builder-pan-sp-001",
     "pan": "AAACP7361R",
