@@ -2,42 +2,41 @@
 
 Where the work stands and what comes next. Updated at every step of every package.
 
-Updated: 2026-11-25, package 01 Codex round 6 decisions recorded; round 7 is the final round.
+Updated: 2026-11-25, package 01 Codex round 7 decisions recorded; **branch review-closed, pending builder's §5 rewrite**.
 
 ## Where it stands
 
-Codex **round 6** (2026-11-25, commit `d033879`) returned `CORRECTION_REQUIRED` with 7 material findings
-(R6.1..R6.7). Builder's decision per `WORKING_METHOD.md` §2 step 6 ("decide that the errors left are not
-important to fix now, write a reason, and write deferred items into OPEN_ITEMS"):
+Codex **round 7** (2026-11-25, commit `70c5443`) returned `CORRECTION_REQUIRED` with 10 material
+findings (R7.1..R7.10). Breakdown of builder's decisions:
 
-- **R6.5, R6.6, R6.7 fixed** in this round's scaffold+fix commits: 409 `check_id` exception stated in
-  §7.4 and D-13; §7.4's `answered_at` row rewritten to mirror §4; A-L1..A-C7 findings-table rows now
-  carry their fixing-commit SHAs.
-- **R6.1..R6.4 deferred** to `docs/OPEN_ITEMS.md` items 5, 6, 7, 8 — four concurrency edge cases in the
-  §7.2 / D-06 state machine, better specified against Package 02's actual code and journey tests than in
-  further prose. §10 change 45 records the deferral.
+- **Fixed in the round-7 closing commit**: R7.1 (D-13 self-contradiction my round-6 commit
+  introduced), R7.7 (SCOPE's `call_log` inventory missing §7.4 columns), R7.8 (fixture-parse check
+  re-run on current tip — 40/40 valid JSON), R7.9 (active-file scrub of "Naidu"), R7.10 (A-L4
+  fixing-commit wording qualified to reflect that the §5 rewrite is the closing commit).
+- **Re-assertions of R6.1..R6.4**: R7.2/3/4/5 — same decision as R6, same OPEN_ITEMS items 5–8.
+- **New OPEN_ITEMS**: R7.6 → item 9 (`my-usage` counting semantics, owner decides); R7.9 → item 10
+  (historical "Naidu" disclosure in earlier commits, owner decides).
 
-**Codex round 7 is the final review round on this branch** (builder's call, 2026-11-25). Any findings it
-returns will be deferred by the same reason and the package closed for the owner's re-audit. The owner
-may accept, push back on specific deferrals, or ask for more rounds.
+**This is the last review round on this branch.** Per `WORKING_METHOD.md` §2 step 6 the builder may
+stop when "the errors left are not important to fix now", recording reasons and deferring items. The
+owner's re-audit decides whether to accept each deferral.
 
-Fixture count: 40 (unchanged). All parse as valid JSON.
+Fixture count: 40 (40/40 valid JSON on current tip `469fb9f`).
 
 ## Current package
 
-Package 01, the contract, scope and design. Status: Codex round 7 ready to run on branch
-`pkg/01-contract-scope-design`. This is the final round before close.
+Package 01, the contract, scope and design. Status: **awaiting the builder's §5 rewrite** on branch
+`pkg/01-contract-scope-design`. Once that lands, the branch is ready for the owner's re-audit.
 
 ## Next
 
-- Build the round-7 packet: `node scripts/review/build-packet.mjs --package 01-contract-scope-design --round 7 --base 5e4566c`.
-  The builder (Naidu) runs Codex with the printed command.
-- Record the result with `node scripts/review/check-result.mjs --package 01-contract-scope-design --round 7`;
-  put each finding in the package record.
-- **Whatever round 7 returns**, close the round: `ACCEPTED` → done; any findings → decide each as
-  "Deferred to OPEN_ITEMS (same reason as R6.1..R6.4)" with the owner's call to accept or not.
-- Builder (Naidu) rewrites "Builder's own checks" (section 5) in their own words (A-L4 rule — only the
-  builder).
+- **The builder rewrites "Builder's own checks" (section 5)** of the package record in their own
+  words — per A-L4 and `WORKING_METHOD.md` §1, only the builder writes §5. See the cleared §5 of the
+  package record for what to include (what the builder actually ran, opened, or compared; anything
+  the builder found that Claude or Codex missed).
+- The builder commits that rewrite as the closing commit of this branch.
+- The builder re-runs `isomorph check --app-root . --json` on the closing commit and records the
+  result in §3 Checks (the fixture-parse check is already recorded on `469fb9f`).
 - Update STATUS.md to "awaiting owner's re-audit".
 - Send the owner a new bundle: `git bundle create pbl-identity-checks-<commit>.bundle --all`.
 - No merge, push to main, or deploy without the owner's word.
@@ -46,7 +45,7 @@ Package 01, the contract, scope and design. Status: Codex round 7 ready to run o
 
 | # | Name | Status | Record |
 | --- | --- | --- | --- |
-| 01 | Contract, scope and design | corrections in progress (owner's audit) | `docs/packages/01-contract-scope-design.md` |
+| 01 | Contract, scope and design | review-closed; awaiting builder's §5 and owner's re-audit | `docs/packages/01-contract-scope-design.md` |
 
 ## Owner's decisions
 

@@ -249,7 +249,8 @@ the contract's guarantee that every register failure becomes a 200 check outcome
   answer, the register evidence, the claim token, and the state.
 - `call_log`: one row per **invocation attempt**. **No** unique constraint on
   `(caller, request_id)`. Holds replays (multiple rows per `request_id`), action
-  refusals (`outcome: null`), builder calls, and successful calls side by side.
+  refusals (`outcome: null`; `check_id` null for ordinary refusals, non-null for
+  409 — see next paragraph), builder calls, and successful calls side by side.
   `caller` is `service:<clientId>` or `builder:<email>`. Field list in contract §7.4.
 
 **`check_id` on action-refusal entries.** Ordinary action refusals (malformed input,
