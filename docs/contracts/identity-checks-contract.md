@@ -187,8 +187,8 @@ register call is an outcome, not an HTTP error.
     "holder_type": "COMPANY"
   },
   "register_reference": "SurePass's own reference for this answer (its client_id), or null",
-  "register_time": "2026-11-20T10:15:00Z",
-  "answered_at": "2026-11-20T10:15:00Z",
+  "register_time": "2026-11-20T10:15:01Z",
+  "answered_at": "2026-11-20T10:15:01Z",
   "checked_at": "2026-11-20T10:15:01Z",
   "reused": false,
   "charged": true
@@ -210,21 +210,28 @@ register call is an outcome, not an HTTP error.
 - `answer`: the check's answer when the outcome is `FOUND`, otherwise `null`. Shape
   depends on `kind` (see section 5).
 - `register_reference`: the register's own reference for this answer (SurePass's
-  `client_id`), or `null` if the register returned none. **On a reused answer this is
-  the original register's reference, unchanged — never `null` simply because the
-  answer was reused.** On a replay it is the stored reference from the first answer.
-- `register_time`: the time the register produced the answer, as an ISO 8601 string in
-  UTC, or `null` when the register did not provide one (the practice register always
-  returns `null` here; SurePass's HTTP Date header is used when present). **On a
-  reused answer this is the original register's time, unchanged.**
-- `answered_at`: the time the register gave this answer, ISO 8601 in UTC. For a new
-  check this equals `checked_at`. **For a reused answer this is the original check's
-  time — it tells the caller how old the answer really is, so the caller can decide
-  whether to ask again.** For `NO_ANSWER`, `NOT_SET_UP`, `LIMIT_REACHED` and
-  `REFUSED_INPUT` outcomes this equals `checked_at` (no earlier answer exists).
-- `checked_at`: the time the service accepted and recorded **this** check, ISO 8601
-  in UTC. On a reused answer, `checked_at` is "today" while `answered_at` is the
-  original day.
+  `client_id`), or `null` if the register returned none. **The practice register
+  always returns `null`.** On a reused answer this is the ORIGINAL register's
+  reference, unchanged — never `null` simply because the answer was reused (so a
+  reused SurePass answer still carries the original SurePass reference, while a
+  reused practice answer stays `null` because the original was `null` too). On a
+  replay (same `request_id`) it is the stored reference from the first answer.
+- `register_time`: the time the register produced the answer, as an ISO 8601 string
+  in UTC, or `null` when the register did not provide one. **The practice register
+  always returns `null` here**; SurePass's HTTP Date header is used when present. On
+  a reused answer this is the ORIGINAL register's time, unchanged (so a reused
+  practice answer stays `null`; a reused SurePass answer carries the original Date).
+- `answered_at`: the time the register first gave this answer, ISO 8601 in UTC.
+  **Never null.** For a **new check** this equals `checked_at` (same ISO string). For
+  a **reused** answer this is the ORIGINAL check's time — the caller uses this to
+  work out how old the answer really is. For a **replay** it is the first answer's
+  time, carried unchanged. For non-answer outcomes (`NO_ANSWER`, `NOT_SET_UP`,
+  `LIMIT_REACHED`, `REFUSED_INPUT`) this equals `checked_at` (no earlier answer
+  exists).
+- `checked_at`: the time the service **accepted** this request, ISO 8601 in UTC. Set
+  once at the moment the request arrives at the action and never changed after. On a
+  reused answer, `checked_at` is "today" while `answered_at` is the original day; the
+  gap between them is the age of the reused answer.
 - `reused`: `true` when an earlier answer for the same number was returned
   (`accept_kept_answer_days` or the 60-second double-click rule), without a new
   register call.

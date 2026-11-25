@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan: accept_kept_answer_days > 0 and a FOUND answer for this number exists within that window. The earlier answer is returned with reused: true; nothing new is paid.",
+  "_about": "check-pan on the practice register: accept_kept_answer_days > 0 and a FOUND answer for this number exists within that window (here, 7 days ago). The earlier answer is returned with reused: true; nothing new is paid. The practice register never carries a register_reference or a register_time (both null) — the age signal lives in answered_at (the original check's time). checked_at is today. See contract §4.",
   "request": {
     "request_id": "crm-pan-reuse-001",
     "pan": "AAACP7361R",
@@ -21,7 +21,7 @@
       "holder_type": "COMPANY"
     },
     "register_reference": null,
-    "register_time": "2026-11-13T09:00:00Z",
+    "register_time": null,
     "answered_at": "2026-11-13T09:00:00Z",
     "checked_at": "2026-11-20T10:15:00Z",
     "reused": true,

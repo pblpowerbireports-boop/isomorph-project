@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan: NO_ANSWER caused by the service's 20-second timeout cutting off a practice-register call that would answer later (ZZZZT9005Z). Proves the timeout works end-to-end on the practice register, without any SurePass call. See contract §8.",
+  "_about": "check-pan: NO_ANSWER caused by the service's 20-second timeout cutting off a practice-register call that would answer later (ZZZZT9005Z). Proves the timeout works end-to-end on the practice register, without any SurePass call. Note on timestamps (§4): `checked_at` is set at request accept (10:15:00Z), not at timeout completion. `answered_at` equals `checked_at` for non-answer outcomes (there is no earlier answer). The 20 seconds the register stalled before the timeout fired is not exposed in the response. See contract §8.",
   "request": {
     "request_id": "crm-pan-timeout-001",
     "pan": "ZZZZT9005Z",
@@ -19,8 +19,8 @@
     "answer": null,
     "register_reference": null,
     "register_time": null,
-    "answered_at": "2026-11-20T10:15:20Z",
-    "checked_at": "2026-11-20T10:15:20Z",
+    "answered_at": "2026-11-20T10:15:00Z",
+    "checked_at": "2026-11-20T10:15:00Z",
     "reused": false,
     "charged": false
   }
