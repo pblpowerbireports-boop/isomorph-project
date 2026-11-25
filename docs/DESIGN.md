@@ -249,9 +249,16 @@ the contract's guarantee that every register failure becomes a 200 check outcome
   answer, the register evidence, the claim token, and the state.
 - `call_log`: one row per **invocation attempt**. **No** unique constraint on
   `(caller, request_id)`. Holds replays (multiple rows per `request_id`), action
-  refusals (`outcome: null`, no corresponding `checks` row), builder calls, and
-  successful calls side by side. `caller` is `service:<clientId>` or
-  `builder:<email>`. Field list in contract §7.4.
+  refusals (`outcome: null`), builder calls, and successful calls side by side.
+  `caller` is `service:<clientId>` or `builder:<email>`. Field list in contract §7.4.
+
+**`check_id` on action-refusal entries.** Ordinary action refusals (malformed input,
+wrong type, missing or unknown field) have **`call_log.check_id = null`** — no
+`checks` row exists for them. The one exception is a **409 same-id/different-request
+refusal**: the mismatch was found by looking up the existing finalised check whose
+`request_id` was reused, so `call_log.check_id` **points to that existing check row**.
+This is the only path where an action-refusal entry has a non-null `check_id`.
+Contract §7.4's `check_id` row and 409 paragraph state the same rule.
 
 Every call that reaches an action writes one `call_log` row. A call that updates or
 replays a `checks` row also sets `call_log.check_id` to the corresponding row's id;
