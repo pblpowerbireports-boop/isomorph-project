@@ -110,40 +110,54 @@ prevents two final rows. Before calling the provider, the service inserts a
 placeholder row with internal state `IN_PROGRESS` and a **claim token** (fresh UUID),
 committed immediately. If that insert conflicts:
 - with a finalised row → `replayed: true` (same request) or 409 (different request);
-- with an `IN_PROGRESS` row → poll up to **30 seconds** for finalisation, then replay;
-  if still in-progress after 30 seconds (stale claim), overwrite the claim token with
-  a new one and proceed as the first request.
+- with an `IN_PROGRESS` row → poll up to **45 s** for finalisation, then replay; if
+  still in-progress after 45 s (stale claim), take the claim with an **atomic CAS**:
+  `UPDATE row SET claim_token = <my new token> WHERE state = 'IN_PROGRESS' AND
+  claim_token = <the stale token I observed>`. Exactly one concurrent waiter's CAS
+  succeeds; the losing waiters go back to polling and ultimately replay the row the
+  winner finalises. **No two waiters can both proceed to a provider call.**
 
-After the provider call (or any terminal path with no call), a second transaction
-updates the row with the final outcome **only where the stored claim token still
-matches the request's own**. If the token has changed (the claim was taken over as
-stale), the update is refused; the original request then waits **up to 30 seconds
-more** for the new claimant to finalise the row, then returns that answer with
-`replayed: true`. If the row is still `IN_PROGRESS` after the second wait (the new
-claimant also crashed), the original request returns `NO_ANSWER` and the row stays
-`IN_PROGRESS` as a stale claim; the next request through takes it over by the same
-30-second rule.
+After the provider call (or any terminal path with no call), the result transaction
+is a **short write with a 5-second budget** that finalises the row via an atomic CAS
+against the request's own token: `UPDATE row SET state = 'TERMINAL', outcome = …
+WHERE claim_token = <my token>`. If the write exceeds its budget, the request treats
+the row as failed, leaves it IN_PROGRESS for the next request's takeover, and
+returns `NO_ANSWER`.
+
+If the CAS fails because the token has changed (the claim was taken over as stale),
+the original request waits up to 45 s more for the new claimant to finalise the row,
+then replays that answer. If still IN_PROGRESS after the second wait, the original
+request atomically finalises the row itself as `NO_ANSWER` (CAS against the stuck
+successor's token). If that CAS succeeds the row is now terminal and the returned
+`check_id` is durable; if it loses (the successor finalised one instant before), the
+original reads the terminal row and returns that answer as a replay. Either way the
+returned `check_id` points at a durable terminal row.
 
 `get-check` never returns an `IN_PROGRESS` row.
 
-**The 30-second bound, justified.** The wait before takeover is 30 seconds because
-every honest path by which a live request may be running fits inside that:
+**The 45-second bound, justified.** The wait before takeover is 45 s because every
+honest path by which a live request may be running fits strictly inside it, with each
+step hard-bounded:
 
-- up to 5 s waiting on the daily-count lock (Isomorph's lock-wait maximum, see D-05);
+- up to 5 s waiting on the daily-count lock (Isomorph's lock-wait maximum, D-05);
 - up to 20 s inside the SurePass provider call (§9's timeout);
-- a few seconds to commit the result transaction.
+- up to **5 s** to commit the result transaction (new rule: a short write; if the
+  statement exceeds this budget, the request returns `NO_ANSWER` rather than block).
 
-Total honest-path upper bound: about 27 s. The 30-second takeover wait is strictly
-greater, so a live request can never be declared stale by mistake. Any future change
-to a step's bound (longer SurePass timeout, slower lock) must be reflected in this
-wait, or two paid calls become possible again.
+Honest-path upper bound: **30 s**. Takeover wait: **45 s** (strictly greater, with
+15 s margin for clock drift and measurement jitter). Any future change to one of the
+step bounds (longer SurePass timeout, slower lock) must be reflected in this wait, or
+two paid calls become possible again. The margin is deliberately kept small so that
+pathological cases hit NO_ANSWER rather than two paid calls.
 
 **Reason.** The unique constraint alone prevents the second *insert* but not the
 second *provider call*, and a two-transaction protocol without an in-progress state
 leaves no defined behaviour when the second request arrives while the first is still
-running. The claim token stops a late terminal write from overwriting a newer
-claim's answer. The second wait + NO_ANSWER rule gives the original request a defined
-end, even if the new claimant also fails.
+running. An atomic CAS on the stale token stops concurrent waiters from each becoming
+"the" successor and each calling the provider. The result-write CAS stops a late
+terminal write from overwriting a newer claim's answer. The second wait + atomic
+NO_ANSWER finalise gives the original request a defined end that returns a durable
+`check_id`, even if the new claimant also fails.
 
 Coding standards (section 4): "a unique constraint for 'one record per request id'";
 contract section 7.2 defines the full state machine.

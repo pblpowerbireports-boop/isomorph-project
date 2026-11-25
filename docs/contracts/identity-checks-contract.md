@@ -404,53 +404,64 @@ different requests** — they claim different slots and do not coalesce, even fo
 same number and register. The 60-second double-click rule (§3) and
 `accept_kept_answer_days` cover the cross-`request_id` cases.
 
-Before calling the provider or reading any kept answer, the service claims a slot in
-two steps:
+Before calling the provider or reading any kept answer, the service claims a slot:
 
 1. **Claim transaction.** Insert a placeholder check row (internal state `IN_PROGRESS`,
    not a contract outcome and never returned to callers) under the
-   `(caller, request_id)` unique constraint and commit immediately. The claim carries a
-   **claim token** (a fresh UUID) stored on the row; every later write to this row from
-   the request that placed the claim names its own token.
+   `(caller, request_id)` unique constraint and commit immediately. The claim carries
+   a **claim token** (a fresh UUID) stored on the row.
    - If the insert **conflicts with a finalised row** (any terminal outcome): same
      request body → returns the existing answer with `replayed: true`; different
      request body → returns 409.
    - If the insert **conflicts with an `IN_PROGRESS` row** (the first request is still
-     running): the conflicting request polls for up to **30 seconds** for the row to
+     running): the conflicting request polls for up to **45 seconds** for the row to
      reach a terminal outcome, then replays the finalised result. If the row is still
-     `IN_PROGRESS` after 30 seconds it is treated as stale; the conflicting request
-     **writes a new claim token** onto the row and proceeds as the first request.
+     `IN_PROGRESS` after 45 seconds it is treated as stale; the conflicting request
+     **takes the claim atomically** by `UPDATE row SET claim_token = <my new token>
+     WHERE state = 'IN_PROGRESS' AND claim_token = <the stale token I observed>`.
+     Exactly one concurrent waiter's CAS succeeds; the losing waiters resume polling
+     and ultimately replay the row the winner finalises.
 
-2. **Result transaction.** After the provider call returns — or after any terminal path
-   that does not call the provider (reuse, `LIMIT_REACHED`, `NOT_SET_UP`) — the action
-   updates the placeholder with the final outcome **only where the row still holds its
-   own token**. If the token has changed (the claim was taken over as stale), the write
-   is refused. The original request then waits **up to 30 seconds more** for the new
-   claimant to produce a terminal row, then returns that answer with `replayed: true`.
-   If after that wait the row is still `IN_PROGRESS` (the new claimant also crashed or
-   is stuck), the original request returns `NO_ANSWER` with reason "A concurrent
-   request is still running; please try again shortly." The stale row then becomes a
-   candidate for takeover by the next request through, by the same 30-second rule.
+2. **Result transaction.** After the provider call returns — or after any terminal
+   path that does not call the provider (reuse, `LIMIT_REACHED`, `NOT_SET_UP`) — the
+   action finalises the placeholder with an atomic CAS: `UPDATE row SET state =
+   'TERMINAL', outcome = <outcome>, … WHERE claim_token = <my token>`. The result
+   transaction is a short write with its own **5-second budget**; if it exceeds that,
+   the request treats the row as failed, leaves it IN_PROGRESS for the next request's
+   takeover, and returns `NO_ANSWER`.
 
-**Timing bound.** The 30-second claim wait is set so that an honest live request can
-never be declared stale while it is still running:
+   If the CAS fails because the token has changed (the claim was taken over as stale),
+   the original request waits **up to 45 seconds more** for the new claimant to
+   produce a terminal row, then replays that answer. If after that wait the row is
+   still `IN_PROGRESS` (the new claimant also crashed or exceeded its budget), the
+   original request itself **atomically finalises the row as NO_ANSWER**: `UPDATE row
+   SET state = 'TERMINAL', outcome = 'NO_ANSWER', register_time = null, answered_at =
+   checked_at WHERE state = 'IN_PROGRESS' AND claim_token = <the stuck successor's
+   token>`. If this CAS succeeds the response carries that row's `check_id`, now
+   terminal and retrievable. If the CAS loses (the successor finalised one instant
+   before), the original reads the terminal row and returns that answer as a replay.
+   Either way, the returned `check_id` points at a durable terminal row — never at an
+   IN_PROGRESS row.
 
-| Step the live request may wait on   | Bound                                         |
-| ---                                  | ---                                           |
-| Daily-count lock inside §7.3         | up to 5 s (Isomorph's lock-wait maximum, D-05)|
-| Provider call (SurePass)             | up to 20 s (§9 timeout)                       |
-| Result write                         | a few seconds                                 |
-| **Honest-path total**                | **about 27 s**                                |
-| **Stale-claim wait before takeover** | **30 s** (strictly greater)                   |
+**Timing bound.** The 45-second claim wait is strictly greater than every honest live
+path, with explicit numerical bounds on each step:
+
+| Step the live request may wait on   | Hard bound                                     |
+| ---                                  | ---                                            |
+| Daily-count lock inside §7.3         | 5 s (Isomorph's lock-wait maximum, D-05)       |
+| Provider call (SurePass)             | 20 s (§9 timeout)                              |
+| Result write (short transaction)     | **5 s** (enforced; over-budget → NO_ANSWER)    |
+| **Honest-path total**                | **30 s**                                       |
+| **Stale-claim wait before takeover** | **45 s** (strictly greater, 15 s margin)       |
 
 This is deliberately spelled out in DESIGN.md D-06 so any later change to one of the
 step bounds (for example, a longer provider timeout) forces a corresponding change to
 the claim wait. Isomorph limits an action to 5 minutes; the worst case (own call +
-second-wait) fits well inside this.
+45 s second wait + the atomic NO_ANSWER finalise) fits well inside this.
 
 **Callers should show a loading indicator on their own screen while waiting:** a PAN
 check can take up to about 30 seconds, and a request that lost its claim and waited
-again can take up to about 60 seconds in total.
+again can take up to about 90 seconds in total.
 
 `get-check` never returns an `IN_PROGRESS` row; a placeholder is not a completed check
 record. Outside the narrow crash window (a provider call that succeeds but whose

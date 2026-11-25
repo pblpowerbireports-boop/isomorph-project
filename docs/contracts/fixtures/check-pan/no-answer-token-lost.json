@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan: the request's claim token was taken over as stale before its own provider reply arrived. Contract §7.2: when the row is still IN_PROGRESS after the original request's second wait (30 s more after token loss), the original request returns NO_ANSWER with the plain-English reason. The row stays IN_PROGRESS as a stale claim; the next request through (not shown) takes it over by the normal 30-second rule. This fixture shows the ORIGINAL request's response. See contract §7.2 and DESIGN.md D-06.",
+  "_about": "check-pan: the request's claim token was taken over as stale before its own provider reply arrived; the successor then also failed to finalise within the second 45-second wait. Per §7.2, the original request atomically finalises the row itself as NO_ANSWER (CAS against the stuck successor's token) and returns this response. The check_id in the response points at that now-terminal row (not an IN_PROGRESS placeholder), so a later `get-check` on this id will return the same NO_ANSWER. See contract §7.2 and DESIGN.md D-06.",
   "request": {
     "request_id": "crm-pan-token-lost-001",
     "pan": "AAACP7361R",
