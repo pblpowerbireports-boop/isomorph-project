@@ -29,12 +29,11 @@ and stricter:
 
 - The action sees the caller as `builder:<email>` (the Isomorph builder identity), not
   as a service credential.
-- **A builder's call always uses the practice register, whatever the request says.**
-  If the request's `register` is `"surepass"`, the service returns `NOT_SET_UP` with
-  reason "Identity checks with SurePass are not set up for this caller." No SurePass
-  call is made, no caller-settings record is consulted, no setting can change this —
-  the rule is wired into the contract. See fixture
-  `check-pan/not-set-up-builder.json`.
+- **Builders may call the actions only with `register: "practice"`.** A builder
+  request that names `"surepass"` is refused before any register call, with outcome
+  `NOT_SET_UP` and reason "Identity checks with SurePass are not set up for this
+  caller." No caller-settings record changes this — the rule is wired into the
+  contract. See fixture `check-pan/not-set-up-builder.json`.
 - A builder's call still passes through the action's own input validation (same rules
   as every service call) and is still recorded in the call log, with `caller =
   builder:<email>`.
