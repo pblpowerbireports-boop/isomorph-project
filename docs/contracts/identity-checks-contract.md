@@ -222,12 +222,14 @@ register call is an outcome, not an HTTP error.
   a reused answer this is the ORIGINAL register's time, unchanged (so a reused
   practice answer stays `null`; a reused SurePass answer carries the original Date).
 - `answered_at`: the time the register first gave this answer, ISO 8601 in UTC.
-  **Never null.** For a **new check** this equals `checked_at` (same ISO string). For
-  a **reused** answer this is the ORIGINAL check's time — the caller uses this to
-  work out how old the answer really is. For a **replay** it is the first answer's
-  time, carried unchanged. For non-answer outcomes (`NO_ANSWER`, `NOT_SET_UP`,
-  `LIMIT_REACHED`, `REFUSED_INPUT`) this equals `checked_at` (no earlier answer
-  exists).
+  **Never null.** For a **new check** this is captured when the register result is
+  received, so it is **≥ `checked_at`** (equal only when the answer is instant; for a
+  slow register call such as `ZZZZT9004Z` it is the full response-time later). For a
+  **reused** answer this is the ORIGINAL check's `answered_at` — the caller uses this
+  to work out how old the answer really is. For a **replay** it is the first
+  answer's `answered_at`, carried unchanged. For non-answer outcomes (`NO_ANSWER`,
+  `NOT_SET_UP`, `LIMIT_REACHED`, `REFUSED_INPUT`) this equals `checked_at` (no
+  earlier answer exists).
 - `checked_at`: the time the service **accepted** this request, ISO 8601 in UTC. Set
   once at the moment the request arrives at the action and never changed after. On a
   reused answer, `checked_at` is "today" while `answered_at` is the original day; the

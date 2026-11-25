@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan: the same caller sends the SAME request twice at the same moment. Both carry request_id 'crm-pan-slow-001'. The first lands first, places an IN_PROGRESS claim, and starts the 18-second provider call on ZZZZT9004Z. The second insert conflicts on (caller, request_id) with the first's IN_PROGRESS row; the second request waits (up to 30 s per §7.2) and, as soon as the first commits its terminal FOUND, replays that answer. This fixture shows the SECOND request's response. The first request's response is `check-pan/found-slow.json` (same request_id, same answer, replayed: false). See contract §7.2.",
+  "_about": "check-pan: the same caller sends the SAME request twice at the same moment. Both carry request_id 'crm-pan-slow-001'. The first lands first, places an IN_PROGRESS claim, and starts the 18-second provider call on ZZZZT9004Z. The second insert conflicts on (caller, request_id) with the first's IN_PROGRESS row; the second request waits (up to 45 s per §7.2) and, as soon as the first commits its terminal FOUND, replays that answer. This fixture shows the SECOND request's response. Note the timestamps: checked_at is 10:15:00Z (when the second request was accepted — effectively the same moment as the first), answered_at is 10:15:18Z (the first request's answer time, carried over unchanged on replay). The first request's response is `check-pan/found-slow.json` (same request_id, same answer, replayed: false). See contract §7.2 and §4.",
   "request": {
     "request_id": "crm-pan-slow-001",
     "pan": "ZZZZT9004Z",
@@ -23,7 +23,7 @@
     "register_reference": null,
     "register_time": null,
     "answered_at": "2026-11-20T10:15:18Z",
-    "checked_at": "2026-11-20T10:15:18Z",
+    "checked_at": "2026-11-20T10:15:00Z",
     "reused": false,
     "charged": false
   }

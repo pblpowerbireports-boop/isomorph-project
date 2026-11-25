@@ -1,5 +1,5 @@
 {
-  "_about": "check-pan: FOUND outcome on the practice register with a deliberate 18-second delay (ZZZZT9004Z). Proves a slow-but-good answer is kept — it arrives within the 20-second timeout and is returned as FOUND. 4th letter Z, so holder_type is null (no Income Tax category maps). See contract §8.",
+  "_about": "check-pan: FOUND outcome on the practice register with a deliberate 18-second delay (ZZZZT9004Z). Proves a slow-but-good answer is kept — it arrives within the 20-second timeout and is returned as FOUND. 4th letter Z, so holder_type is null (no Income Tax category maps). Note the timestamps: checked_at is 10:15:00Z (request accept), answered_at is 10:15:18Z (18 seconds later, when the register produced the answer). See contract §4 (answered_at rule for a new slow check) and §8.",
   "request": {
     "request_id": "crm-pan-slow-001",
     "pan": "ZZZZT9004Z",
@@ -23,7 +23,7 @@
     "register_reference": null,
     "register_time": null,
     "answered_at": "2026-11-20T10:15:18Z",
-    "checked_at": "2026-11-20T10:15:18Z",
+    "checked_at": "2026-11-20T10:15:00Z",
     "reused": false,
     "charged": false
   }
