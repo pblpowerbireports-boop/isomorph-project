@@ -392,44 +392,66 @@ One settings record per credential (`service:<clientId>`):
 
 ### 7.2 Request-slot claim (concurrent safety)
 
-Before calling the provider or reading any kept answer, the service claims a request
-slot in two steps:
+The service enforces "one paid call per identical request" using a per-`(caller,
+request_id)` claim with a token. **Different `request_id`s from the same caller are
+different requests** — they claim different slots and do not coalesce, even for the
+same number and register. The 60-second double-click rule (§3) and
+`accept_kept_answer_days` cover the cross-`request_id` cases.
+
+Before calling the provider or reading any kept answer, the service claims a slot in
+two steps:
 
 1. **Claim transaction.** Insert a placeholder check row (internal state `IN_PROGRESS`,
-   not a contract outcome and never returned to callers) under the `(caller, request_id)`
-   unique constraint and commit immediately. The claim carries a **claim token** (a
-   fresh UUID) stored on the row; every later write to this row from the request that
-   placed the claim names its own token.
-   - If the insert **conflicts with a finalised row** (any terminal outcome): same request
-     body → returns the existing answer with `replayed: true`; different request body →
-     returns 409.
+   not a contract outcome and never returned to callers) under the
+   `(caller, request_id)` unique constraint and commit immediately. The claim carries a
+   **claim token** (a fresh UUID) stored on the row; every later write to this row from
+   the request that placed the claim names its own token.
+   - If the insert **conflicts with a finalised row** (any terminal outcome): same
+     request body → returns the existing answer with `replayed: true`; different
+     request body → returns 409.
    - If the insert **conflicts with an `IN_PROGRESS` row** (the first request is still
-     running): the conflicting request polls for up to **25 seconds** for the row to
+     running): the conflicting request polls for up to **30 seconds** for the row to
      reach a terminal outcome, then replays the finalised result. If the row is still
-     `IN_PROGRESS` after 25 seconds it is treated as stale; the conflicting request
+     `IN_PROGRESS` after 30 seconds it is treated as stale; the conflicting request
      **writes a new claim token** onto the row and proceeds as the first request.
 
 2. **Result transaction.** After the provider call returns — or after any terminal path
    that does not call the provider (reuse, `LIMIT_REACHED`, `NOT_SET_UP`) — the action
    updates the placeholder with the final outcome **only where the row still holds its
    own token**. If the token has changed (the claim was taken over as stale), the write
-   is refused; the original request then reads the row the new holder wrote and returns
-   that answer with `replayed: true`. One terminal row wins; the other request still
-   returns a complete response.
+   is refused. The original request then waits **up to 30 seconds more** for the new
+   claimant to produce a terminal row, then returns that answer with `replayed: true`.
+   If after that wait the row is still `IN_PROGRESS` (the new claimant also crashed or
+   is stuck), the original request returns `NO_ANSWER` with reason "A concurrent
+   request is still running; please try again shortly." The stale row then becomes a
+   candidate for takeover by the next request through, by the same 30-second rule.
+
+**Timing bound.** The 30-second claim wait is set so that an honest live request can
+never be declared stale while it is still running:
+
+| Step the live request may wait on   | Bound                                         |
+| ---                                  | ---                                           |
+| Daily-count lock inside §7.3         | up to 5 s (Isomorph's lock-wait maximum, D-05)|
+| Provider call (SurePass)             | up to 20 s (§9 timeout)                       |
+| Result write                         | a few seconds                                 |
+| **Honest-path total**                | **about 27 s**                                |
+| **Stale-claim wait before takeover** | **30 s** (strictly greater)                   |
+
+This is deliberately spelled out in DESIGN.md D-06 so any later change to one of the
+step bounds (for example, a longer provider timeout) forces a corresponding change to
+the claim wait. Isomorph limits an action to 5 minutes; the worst case (own call +
+second-wait) fits well inside this.
+
+**Callers should show a loading indicator on their own screen while waiting:** a PAN
+check can take up to about 30 seconds, and a request that lost its claim and waited
+again can take up to about 60 seconds in total.
 
 `get-check` never returns an `IN_PROGRESS` row; a placeholder is not a completed check
-record. Outside the narrow crash window (a provider call that succeeds but whose result
-transaction then aborts), two identical concurrent requests produce at most one provider
-call that is kept. In that window, a provider call may occur without a durable record;
-this unavoidable uncertainty is acknowledged here. If SurePass offers no idempotency
-key, the caller should send a new `request_id` to check again.
-
-**Timing.** A single check (including a `ZZZZT9004Z`-style 18-second slow answer) can
-take up to 20 seconds inside the action, plus at most a few seconds to write the result.
-A conflicting identical request can wait up to 25 seconds before taking over. Isomorph
-limits an action to 5 minutes, so the full response — answer or replay — always arrives
-within that bound. **Callers should show a loading indicator on their own screen while
-waiting:** a PAN check can take up to about 25 seconds.
+record. Outside the narrow crash window (a provider call that succeeds but whose
+result transaction then aborts), two identical concurrent requests produce at most one
+provider call whose answer is kept. In that window, a provider call may occur without
+a durable record; this unavoidable uncertainty is acknowledged here. If SurePass
+offers no idempotency key, the caller should send a new `request_id` to check again.
 
 ### 7.3 Daily limits
 

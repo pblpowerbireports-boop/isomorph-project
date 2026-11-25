@@ -105,30 +105,45 @@ Isomorph's 5-second lock-wait and 30-second statement limits.
 
 ### D-06 — `request_id` uniqueness enforced by unique constraint + request-claim state machine
 
-**Decision:** A unique constraint on `(caller, request_id)` in the `checks` table
-prevents two final rows. Before calling the provider, the service inserts a placeholder
-row with internal state `IN_PROGRESS` and a **claim token** (fresh UUID), committed
-immediately. If that insert conflicts:
+**Decision.** A unique constraint on `(caller, request_id)` in the `checks` table
+prevents two final rows. Before calling the provider, the service inserts a
+placeholder row with internal state `IN_PROGRESS` and a **claim token** (fresh UUID),
+committed immediately. If that insert conflicts:
 - with a finalised row → `replayed: true` (same request) or 409 (different request);
-- with an `IN_PROGRESS` row → poll up to **25 seconds** for finalisation, then replay;
-  if still in-progress after 25 seconds (stale claim), overwrite the claim token with
+- with an `IN_PROGRESS` row → poll up to **30 seconds** for finalisation, then replay;
+  if still in-progress after 30 seconds (stale claim), overwrite the claim token with
   a new one and proceed as the first request.
 
 After the provider call (or any terminal path with no call), a second transaction
 updates the row with the final outcome **only where the stored claim token still
 matches the request's own**. If the token has changed (the claim was taken over as
-stale), the update is refused; the original request then reads the row the new holder
-wrote and returns that answer with `replayed: true`. `get-check` never returns an
-`IN_PROGRESS` row.
+stale), the update is refused; the original request then waits **up to 30 seconds
+more** for the new claimant to finalise the row, then returns that answer with
+`replayed: true`. If the row is still `IN_PROGRESS` after the second wait (the new
+claimant also crashed), the original request returns `NO_ANSWER` and the row stays
+`IN_PROGRESS` as a stale claim; the next request through takes it over by the same
+30-second rule.
 
-**Reason:** The unique constraint alone prevents the second *insert* but not the
+`get-check` never returns an `IN_PROGRESS` row.
+
+**The 30-second bound, justified.** The wait before takeover is 30 seconds because
+every honest path by which a live request may be running fits inside that:
+
+- up to 5 s waiting on the daily-count lock (Isomorph's lock-wait maximum, see D-05);
+- up to 20 s inside the SurePass provider call (§9's timeout);
+- a few seconds to commit the result transaction.
+
+Total honest-path upper bound: about 27 s. The 30-second takeover wait is strictly
+greater, so a live request can never be declared stale by mistake. Any future change
+to a step's bound (longer SurePass timeout, slower lock) must be reflected in this
+wait, or two paid calls become possible again.
+
+**Reason.** The unique constraint alone prevents the second *insert* but not the
 second *provider call*, and a two-transaction protocol without an in-progress state
 leaves no defined behaviour when the second request arrives while the first is still
-running. A 10-second wait is shorter than SurePass's 20-second timeout, so a live
-slow request could be declared stale and both requests would make a paid call; 25
-seconds > 20 s + result-write time, so a live request can never be taken over
-accidentally. The claim token stops a late terminal write from overwriting a newer
-claim's answer.
+running. The claim token stops a late terminal write from overwriting a newer
+claim's answer. The second wait + NO_ANSWER rule gives the original request a defined
+end, even if the new claimant also fails.
 
 Coding standards (section 4): "a unique constraint for 'one record per request id'";
 contract section 7.2 defines the full state machine.

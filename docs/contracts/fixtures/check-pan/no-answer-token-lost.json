@@ -1,0 +1,27 @@
+{
+  "_about": "check-pan: the request's claim token was taken over as stale before its own provider reply arrived. Contract §7.2: when the row is still IN_PROGRESS after the original request's second wait (30 s more after token loss), the original request returns NO_ANSWER with the plain-English reason. The row stays IN_PROGRESS as a stale claim; the next request through (not shown) takes it over by the normal 30-second rule. This fixture shows the ORIGINAL request's response. See contract §7.2 and DESIGN.md D-06.",
+  "request": {
+    "request_id": "crm-pan-token-lost-001",
+    "pan": "AAACP7361R",
+    "register": "practice",
+    "accept_kept_answer_days": 0
+  },
+  "response": {
+    "contract_version": "1.0",
+    "check_id": "00000000-0000-0000-0000-000000000045",
+    "request_id": "crm-pan-token-lost-001",
+    "replayed": false,
+    "kind": "PAN",
+    "number": "AAACP7361R",
+    "register": "PRACTICE",
+    "outcome": "NO_ANSWER",
+    "reason": "A concurrent request is still running; please try again shortly.",
+    "answer": null,
+    "register_reference": null,
+    "register_time": null,
+    "answered_at": "2026-11-20T10:16:00Z",
+    "checked_at": "2026-11-20T10:16:00Z",
+    "reused": false,
+    "charged": false
+  }
+}
