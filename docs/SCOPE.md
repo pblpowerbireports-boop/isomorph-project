@@ -50,7 +50,8 @@ and error. No field not in the contract crosses the action's response.
 | `caller_settings_history` | Append-only log of every change to `caller_settings` | Who changed it, when, from what to what |
 | `daily_counts` | One row per (caller, register, India date): count of new invocations (calls that reached the register, excluding replays/reuses/LIMIT_REACHED) | Used for daily-limit enforcement; inserted on-conflict then locked FOR UPDATE |
 
-Data retention is an open question (see `docs/OPEN_ITEMS.md`, item 1).
+Version 1 keeps every check record and every call-log entry (owner's decision,
+2026-11-21). The retention policy for production is `docs/OPEN_ITEMS.md`, item 4.
 
 ---
 

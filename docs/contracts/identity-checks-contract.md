@@ -526,8 +526,10 @@ For builders only (not callers):
 
 ### 7.6 Data retention
 
-How long check records and call log entries are kept is a PBL policy not yet decided.
-No deletion is built in version 1. This is an open question (see `docs/OPEN_ITEMS.md`).
+Version 1 **keeps every check record and every call-log entry forever** (owner's
+decision, 2026-11-21, recorded in `docs/STATUS.md`): no deletion is built, no TTL is
+set, no archival runs. The retention policy for production is a separate decision
+the owner will take before production (`docs/OPEN_ITEMS.md`, item 4).
 
 ---
 

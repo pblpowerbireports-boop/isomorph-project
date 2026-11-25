@@ -258,11 +258,9 @@ page masks numbers from `call_log` the same way it masks numbers from `checks`.
 
 ## Open questions
 
-See `docs/OPEN_ITEMS.md`. The following questions are outstanding as of package 01:
-
-1. Data retention policy (how long check records are kept) — PBL business decision.
-2. `holder_type` for a PAN whose SurePass category is absent or unmapped and whose 4th
-   letter is also not in the mapping: the service returns `null`; is this acceptable?
-   (Recorded in contract section 5.2; likely yes, but not confirmed by the owner.)
-3. `gstins-by-pan` returning an empty list: is FOUND the right outcome, or should it be
-   NOT_FOUND? (Contract section 5.4 chooses FOUND, matching the CRM; pending confirmation.)
+See `docs/OPEN_ITEMS.md`. All three package-01 open questions were closed by the
+owner on 2026-11-21 (recorded in `docs/STATUS.md`): data retention for version 1
+(keep everything, no deletion), `holder_type` null when nothing maps (accepted), and
+`gstins-by-pan` empty list → `FOUND` (accepted). The only item still open is the
+production retention policy (`docs/OPEN_ITEMS.md`, item 4), to be decided by the
+owner before production.
