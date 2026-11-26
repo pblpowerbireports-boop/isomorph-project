@@ -218,14 +218,18 @@ findings table).
 
 ## 5. Builder's own checks
 
-*To be rewritten by the builder after the audit corrections and Codex round 4
-are done, in the builder's own words. Per `docs/rules/WORKING_METHOD.md` section 1,
-only the builder writes this section — Claude never writes it and never suggests its
-words. See A-L4 in the findings table for what to include: things the builder actually
-ran, opened or compared, and anything the builder found that Claude or Codex missed.*
+**What I did in this corrections cycle.**
+reviewed every point from 1st till 8th point and accepted changes based on review 
 
-*Previous content (first attempt, pre-audit) is kept at commit `e8fd983` in git
-history; it was found to list only what was read, not what was checked.*
+**What I decided myself, not just agreed to.**
+initially added 25sec but later changed to 30.
+
+
+**What I did NOT check myself.**
+isomorph check on every commit
+
+**Anything I found that Claude or Codex missed.**
+Nothing.
 
 ## 6. Close
 
